@@ -1,0 +1,274 @@
+import 'server-only';
+import { asVertical } from './verticals';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { NOTION_DB, createRow, hasNotion, isNotionId, notionPageMarkdown, pageTitle, plainId, prop, queryDatabase, updateRow, val } from './notion';
+import type { Org, Responsable } from './types';
+
+const PRIORITY_IN: Record<string, string> = { crítica: 'critica', critica: 'critica', alta: 'alta', media: 'media', baja: 'baja', p1: 'alta', p2: 'media', p3: 'baja' };
+/** Tracker de Fractal usa P1/P2/P3 */
+const PRIORITY_P: Record<string, string> = { critica: 'P1', alta: 'P1', media: 'P2', baja: 'P3' };
+export const PRIORITY_OUT: Record<string, string> = { critica: 'Crítica', alta: 'Alta', media: 'Media', baja: 'Baja' };
+const isDone = (s: unknown) => typeof s === 'string' && /done|ready|listo|complet|hecho/i.test(s);
+
+/** "Entregable: ..." de las notas de Notion, o la primera frase. */
+function whyFromNotes(notes: string | null): string | null {
+  if (!notes) return null;
+  const ent = notes.match(/Entregable:\s*([^\n]+)/i)?.[1];
+  const text = (ent ?? notes.split('\n').find((l) => l.trim() && !/^registro anterior|^actualización/i.test(l.trim())) ?? '').trim();
+  return text ? text.slice(0, 280) : null;
+}
+
+function ownerFromTitle(title: string): 'fractal' | 'cliente' {
+  return /^(fractal|mateo|lore|equipo fractal)\b/i.test(title.trim()) ? 'fractal' : 'cliente';
+}
+
+const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s*&\s*/g, ' y ').trim();
+const peopleIds = (p: any): string[] => (p?.type === 'people' ? (p.people ?? []).map((x: any) => String(x.id).replace(/-/g, '')) : []);
+
+/** Responsable de una fila de Notion: columna "A cargo", si no el prefijo del título, si no la persona asignada. */
+export function responsableFromRow(r: any, list: Responsable[] = []): string | null {
+  if (!list.length) return null;
+  const sel = val(prop(r, 'A cargo'));
+  if (sel) return list.find((x) => norm(x.name) === norm(String(sel)))?.name ?? String(sel);
+  const title = pageTitle(r);
+  const t = norm(title);
+  const byTitle = list.find((x) => t.startsWith(norm(x.name)) && /^[\s:—–\-/,]/.test(t.slice(norm(x.name).length)));
+  if (byTitle) return byTitle.name;
+  const ids = [...peopleIds(prop(r, 'Responsable')), ...peopleIds(prop(r, 'Owner'))];
+  let matches = list.filter((x) => !x.name.includes(' + ') && [x.notion_user, ...(x.notion_alt ?? [])].some((u) => u && ids.includes(u.replace(/-/g, ''))));
+  // Columna de texto "Responsible" (tracker de Fractal): busca los nombres que aparezcan
+  const text = val(prop(r, 'Responsible'));
+  if (text) {
+    const tn = norm(String(text));
+    const named = list.filter((x) => !x.name.includes(' + ') && [x.name, ...(x.aliases ?? [])].some((n) => new RegExp(`\\b${norm(n)}\\b`).test(tn)));
+    if (named.length) matches = named;
+  }
+  if (matches.length > 1) {
+    const combo = list.find((x) => x.name.includes(' + ') && x.name.split(' + ').every((n) => matches.some((m) => m.name === n)) && x.name.split(' + ').length === matches.length);
+    if (combo) return combo.name;
+  }
+  // Si hay persona del cliente y de Fractal a la vez, gana la del cliente
+  return (matches.find((x) => x.side === 'cliente') ?? matches[0])?.name ?? null;
+}
+
+export interface SyncResult {
+  org: string;
+  tasks: number;
+  created: number;
+  milestones: number;
+  calls: number;
+  error?: string;
+}
+
+/** Trae de Notion las tareas y el roadmap de un cliente y los actualiza en la app. */
+export async function syncOrgFromNotion(sb: SupabaseClient, org: Org): Promise<SyncResult> {
+  const res: SyncResult = { org: org.name, tasks: 0, created: 0, milestones: 0, calls: 0 };
+  if (!hasNotion()) return { ...res, error: 'Falta NOTION_TOKEN' };
+  try {
+    // Roadmap primero, para poder vincular tareas a llamadas
+    if (org.notion_roadmap_db) {
+      const rows = await queryDatabase(org.notion_roadmap_db);
+      let pos = 0;
+      for (const r of rows) {
+        const id = plainId(r.id);
+        const title = pageTitle(r);
+        const type = String(val(prop(r, 'Type', 'Tipo')) ?? '');
+        const date = val(prop(r, 'Date', 'Fecha'));
+        if (/llamada/i.test(type)) {
+          const { data: existing } = await sb.from('calls').select('id').eq('notion_id', id).maybeSingle();
+          const row = { org_id: org.id, title, share_url: val(prop(r, 'Link llamada')), ...(date ? { held_at: `${date.slice(0, 10)}T15:00:00Z` } : {}) };
+          if (existing) await sb.from('calls').update(row).eq('id', existing.id);
+          else await sb.from('calls').insert({ ...row, held_at: row.held_at ?? r.created_time, source: 'notion', status: 'procesada', notion_id: id });
+          res.calls++;
+        } else {
+          const row = { org_id: org.id, title, due_date: date ? String(date).slice(0, 10) : null, kind: /^fase\b/i.test(title) ? 'fase' : 'hito' };
+          const { data: existing } = await sb.from('milestones').select('id').eq('notion_id', id).maybeSingle();
+          if (existing) await sb.from('milestones').update(row).eq('id', existing.id);
+          else await sb.from('milestones').insert({ ...row, position: pos, notion_id: id });
+          pos++;
+          res.milestones++;
+        }
+      }
+    }
+
+    if (org.notion_tasks_db) {
+      const rows = await queryDatabase(org.notion_tasks_db);
+      const { data: calls } = await sb.from('calls').select('id, notion_id').eq('org_id', org.id).not('notion_id', 'is', null);
+      const callByNotion = new Map((calls ?? []).map((c) => [plainId(c.notion_id!), c.id]));
+      // Lo que se cambió en la app y todavía no llegó a Notion se sube primero, para no pisarlo
+      const { data: dirty } = await sb.from('action_items').select('id').eq('org_id', org.id).eq('notion_dirty', true);
+      for (const d of dirty ?? []) await pushActionToNotion(sb, d.id);
+      const { data: existing } = await sb.from('action_items').select('id, notion_id, done, why, notion_dirty').eq('org_id', org.id).not('notion_id', 'is', null);
+      const byNotion = new Map((existing ?? []).map((a) => [plainId(a.notion_id!), a]));
+      const { count } = await sb.from('action_items').select('id', { count: 'exact', head: true }).eq('org_id', org.id);
+      let pos = count ?? 0;
+      const { data: clientOrgs } = org.kind === 'agency'
+        ? await sb.from('organizations').select('id, notion_client_page, vertical').not('notion_client_page', 'is', null)
+        : { data: [] as { id: string; notion_client_page: string; vertical: string | null }[] };
+      const clientByPage = new Map((clientOrgs ?? []).map((o) => [plainId(o.notion_client_page!), o.id]));
+      const verticalOf = new Map((clientOrgs ?? []).map((o) => [o.id, o.vertical]));
+
+      for (const r of rows) {
+        const id = plainId(r.id);
+        const title = pageTitle(r);
+        const done = isDone(val(prop(r, 'Estado', 'Status')));
+        const relation: string[] = val(prop(r, 'Roadmap Phase', 'Roadmap', 'Llamada')) ?? [];
+        const callId = relation.map((x) => callByNotion.get(x)).find(Boolean) ?? null;
+        const fields = {
+          title,
+          done,
+          priority: PRIORITY_IN[String(val(prop(r, 'Prioridad', 'Priority')) ?? '').toLowerCase()] ?? null,
+          area: val(prop(r, 'Area', 'Área')),
+          due_date: val(prop(r, 'Fecha Limite', 'Fecha límite', 'Due Date', 'Due'))?.slice(0, 10) ?? null,
+          responsable: responsableFromRow(r, org.responsables),
+        };
+        const side = org.kind === 'agency' ? 'fractal' : org.responsables?.find((x) => x.name === fields.responsable)?.side;
+        // Tracker de Fractal: la relación "Client" apunta a la ficha del cliente en Notion
+        const clientRel: string[] = org.kind === 'agency' ? val(prop(r, 'Client')) ?? [] : [];
+        const clientOrg = clientRel.map((x) => clientByPage.get(x)).find(Boolean) ?? null;
+        // En el tracker de Fractal se ordena por fecha de creación en Notion
+        // Vertical: la de Notion; si no tiene, la del cliente (o la de esta cuenta)
+        const vertical = asVertical(val(prop(r, 'Vertical'))) ?? asVertical(clientOrg ? verticalOf.get(clientOrg) : org.vertical);
+        const extra = {
+          ...(org.kind === 'agency' ? { client_org_id: clientOrg, created_at: r.created_time } : {}),
+          ...(vertical ? { vertical } : {}),
+        };
+        const cur = byNotion.get(id);
+        if (cur?.notion_dirty) {
+          res.tasks++;
+          continue; // no se pudo subir: se mantiene lo de la app y se reintenta en el próximo sync
+        }
+        if (cur) {
+          await sb.from('action_items').update({
+            ...extra,
+            ...(side ? { owner: side } : {}),
+            ...fields,
+            ...(callId ? { call_id: callId } : {}),
+            ...(cur.done !== done ? { done_at: done ? new Date().toISOString() : null } : {}),
+          }).eq('id', cur.id);
+        } else {
+          await sb.from('action_items').insert({
+            ...fields,
+            org_id: org.id,
+            call_id: callId,
+            ...extra,
+            why: whyFromNotes(val(prop(r, 'Notes & Links', 'Notas', 'Deliverable', 'Notes'))),
+            owner: side ?? ownerFromTitle(title),
+            done_at: done ? new Date().toISOString() : null,
+            position: pos++,
+            source: 'notion',
+            notion_id: id,
+          });
+          res.created++;
+        }
+        res.tasks++;
+      }
+    }
+    await sb.from('organizations').update({ last_synced_at: new Date().toISOString() }).eq('id', org.id);
+  } catch (e) {
+    res.error = e instanceof Error ? e.message : String(e);
+  }
+  return res;
+}
+
+/** Atlas de Notion → tabla lab_entries. */
+export async function syncAtlasFromNotion(sb: SupabaseClient, opts: { bodies?: number } = {}): Promise<{ count: number; bodies?: number; error?: string }> {
+  if (!hasNotion()) return { count: 0, error: 'Falta NOTION_TOKEN' };
+  try {
+    const rows = await queryDatabase(NOTION_DB.atlas);
+    for (let i = 0; i < rows.length; i += 10) await Promise.all(rows.slice(i, i + 10).map((r) => sb.from('lab_entries').upsert({
+        notion_id: plainId(r.id),
+        title: pageTitle(r),
+        tipo: val(prop(r, 'Tipo')),
+        area: val(prop(r, 'Área', 'Area')),
+        estado: val(prop(r, 'Estado')) ?? 'Capturado',
+        prioridad: val(prop(r, 'Prioridad')),
+        cliente: val(prop(r, 'Cliente')),
+        responsable: val(prop(r, 'Responsable')),
+        fecha: val(prop(r, 'Fecha'))?.slice(0, 10) ?? null,
+        fuente: val(prop(r, 'Fuente')),
+        notas: val(prop(r, 'Notas')),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'notion_id' })));
+    // Cuerpo de la página (transcripciones, desarrollo): solo de las que cambiaron, las más recientes primero, de a 6
+    const { data: known } = await sb.from('lab_entries').select('notion_id, notion_edited');
+    const prev = new Map((known ?? []).map((k) => [k.notion_id, k.notion_edited as string | null]));
+    const stale = rows
+      .filter((r) => { const k = prev.get(plainId(r.id)); return !k || new Date(k).getTime() < new Date(r.last_edited_time).getTime(); })
+      .sort((a, b) => b.last_edited_time.localeCompare(a.last_edited_time))
+      .slice(0, opts.bodies ?? 24);
+    for (let i = 0; i < stale.length; i += 6) {
+      await Promise.all(stale.slice(i, i + 6).map(async (r) => {
+        const body = await notionPageMarkdown(r.id);
+        await sb.from('lab_entries').update({ body: body || null, notion_edited: r.last_edited_time }).eq('notion_id', plainId(r.id));
+      }));
+    }
+    return { count: rows.length, bodies: stale.length };
+  } catch (e) {
+    return { count: 0, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+// ---------- App → Notion ----------
+
+/** Valores de Notion para el responsable: columna "A cargo" + persona, cuando la tiene. */
+function responsableProps(name: string | null | undefined, list: Responsable[] = []) {
+  if (!name) return {};
+  // "Mateo + Lorena" → las dos personas
+  const people = name.split(' + ').map((n) => list.find((x) => x.name === n)).filter(Boolean) as Responsable[];
+  const ids = (people.length ? people : list.filter((x) => x.name === name)).map((x) => x.notion_user).filter(Boolean) as string[];
+  return { 'A cargo': name, Responsable: ids.length ? ids : undefined, Owner: ids.length ? ids : undefined, Responsible: name };
+}
+
+/**
+ * Sube a Notion el estado actual de un accionable (estado, responsable, fecha y prioridad).
+ * Si falla, queda marcado como pendiente (notion_dirty) y se reintenta en el próximo sync.
+ */
+export async function pushActionToNotion(sb: SupabaseClient, actionId: string): Promise<boolean> {
+  const { data: a } = await sb.from('action_items')
+    .select('id, title, why, area, priority, vertical, due_date, done, responsable, notion_id, parent_id, org_id, organizations!action_items_org_id_fkey(notion_tasks_db, responsables)')
+    .eq('id', actionId).single();
+  if (!a) return false;
+  const org = (a as any).organizations as { notion_tasks_db: string | null; responsables: Responsable[] } | null;
+  if (!hasNotion() || a.parent_id) {
+    await sb.from('action_items').update({ notion_dirty: false }).eq('id', a.id);
+    return true;
+  }
+  try {
+    const values = {
+      Estado: a.done ? 'Done' : 'Not started',
+      Status: a.done ? 'Done' : 'Not started',
+      'Fecha Limite': a.due_date,
+      'Due Date': a.due_date,
+      Prioridad: a.priority ? PRIORITY_OUT[a.priority] : null,
+      Priority: a.priority ? PRIORITY_P[a.priority] : null,
+      Vertical: a.vertical,
+      ...responsableProps(a.responsable, org?.responsables),
+    };
+    if (isNotionId(a.notion_id)) {
+      await updateRow(a.notion_id, values);
+    } else if (org?.notion_tasks_db) {
+      const id = await createRow(org.notion_tasks_db, {
+        'Task name': a.title, Name: a.title, Task: a.title, Area: a.area, 'Notes & Links': a.why, Notes: a.why, ...values,
+      });
+      await sb.from('action_items').update({ notion_id: id }).eq('id', a.id);
+    } else {
+      await sb.from('action_items').update({ notion_dirty: false }).eq('id', a.id);
+      return true;
+    }
+    await sb.from('action_items').update({ notion_dirty: false }).eq('id', a.id);
+    return true;
+  } catch (e) {
+    console.error('No se pudo actualizar la tarea en Notion', a.id, e);
+    await sb.from('action_items').update({ notion_dirty: true }).eq('id', a.id);
+    return false;
+  }
+}
+
+/** Sube todo lo que haya quedado pendiente (para el cron). */
+export async function pushDirtyActions(sb: SupabaseClient): Promise<number> {
+  const { data } = await sb.from('action_items').select('id').eq('notion_dirty', true).limit(200);
+  let ok = 0;
+  for (const d of data ?? []) if (await pushActionToNotion(sb, d.id)) ok++;
+  return ok;
+}

@@ -1,0 +1,104 @@
+import Link from 'next/link';
+import { getActions, getBrain, getCalls, getDocs, getMilestones, getOrgBySlug, getResources, requireViewer } from '@/lib/data';
+import { JourneyCard } from '@/components/Journey';
+import { computeRoadmap } from '@/lib/roadmap';
+import { RoadmapProgress } from '@/components/Roadmap';
+import { fmtDate } from '@/lib/format';
+import { Cells } from '@/components/Cells';
+import { Icon } from '@/components/Icon';
+import { WorkflowCard } from '@/components/WorkflowCard';
+
+export default async function PortalHome({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const org = await getOrgBySlug(slug);
+  const consulting = org.segment === 'consulting';
+  const [v, actions, calls, resources, docs, milestones, brain] = await Promise.all([
+    requireViewer(), getActions(org.id), getCalls(org.id), getResources(org.id), getDocs(org.id), getMilestones(org.id),
+    consulting ? getBrain(org.id) : Promise.resolve({}),
+  ]);
+  const roadmap = computeRoadmap(milestones, org.start_date);
+  const tops = actions.filter((a) => !a.parent_id);
+  const pending = tops.filter((a) => !a.done);
+  const last = calls[0];
+  const name = org.contact_name || (v.isStaff ? org.name : v.name);
+  const base = `/c/${org.slug}`;
+
+  const links = [
+    org.program_url && { href: org.program_url, icon: 'book', title: 'Programa', text: 'Tus clases de MAGNA.' },
+    org.drive_url && { href: org.drive_url, icon: 'folder', title: 'Drive', text: 'Tu carpeta con fuentes de información.' },
+    org.tracker_url && { href: org.tracker_url, icon: 'sheet', title: 'Tracker de métricas', text: 'Tus números de cada semana.' },
+  ].filter(Boolean) as { href: string; icon: string; title: string; text: string }[];
+
+  return (
+    <>
+      <section className="hello">
+        <h1>Bienvenida de vuelta, {name}</h1>
+        <p>
+          {last
+            ? `Tu última sesión fue el ${fmtDate(last.held_at)}. Aquí tienes lo que quedó pendiente y todo lo que te compartimos.`
+            : 'Aquí está tu recorrido en MAGNA, lo que te toca hacer y todo lo que te compartimos.'}
+        </p>
+      </section>
+
+      {(org.workflow?.length ?? 0) > 0 && (
+        <div style={{ marginTop: 32 }}><WorkflowCard orgId={org.id} steps={org.workflow ?? []} staff={false} clientName={org.contact_name || org.name} /></div>
+      )}
+
+      {consulting && (
+        <div style={{ marginTop: 32 }}>
+          <JourneyCard data={brain} href={`${base}/cerebro`} />
+        </div>
+      )}
+
+      {roadmap.totalWeeks > 0 && (
+        <Link href={`${base}/roadmap`} className="panel panel-pad" style={{ display: 'block', marginTop: consulting ? 12 : 32, textDecoration: 'none' }}>
+          <RoadmapProgress view={roadmap} compact />
+        </Link>
+      )}
+
+      <Link href={`${base}/accionables`} className="panel next-card" style={{ textDecoration: 'none', marginTop: roadmap.totalWeeks > 0 ? 12 : 32 }}>
+        <div className="stack" style={{ gap: 12 }}>
+          <b style={{ fontWeight: 600 }}>Próximos accionables</b>
+          <span className="muted">
+            {pending.length
+              ? `Te ${pending.length === 1 ? 'queda 1 accionable pendiente' : `quedan ${pending.length} accionables pendientes`}.`
+              : 'Tienes todo al día.'}
+          </span>
+          <Cells done={tops.length - pending.length} total={tops.length} size="lg" />
+        </div>
+        <span className="big" aria-hidden="true">{pending.length}</span>
+      </Link>
+
+      {pending.length > 0 && (
+        <ul className="list panel" style={{ marginTop: 12 }}>
+          {pending.slice(0, 3).map((a) => (
+            <li key={a.id} className="list-row">
+              <span className="cell" style={{ background: 'var(--brand)', opacity: 0.35 }} />
+              <span className="grow">{a.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="links-grid" style={{ marginTop: 28 }}>
+        <Link href={`${base}/recursos`} className="panel link-card">
+          <Icon name="doc" />
+          <b>Recursos y SOPs</b>
+          <span className="muted small">{resources.length} documentos, hojas y carpetas en un solo lugar.</span>
+        </Link>
+        <Link href={`${base}/biblioteca`} className="panel link-card">
+          <Icon name="book" />
+          <b>Biblioteca</b>
+          <span className="muted small">{docs.length} documentos de estrategia y de tus sesiones.</span>
+        </Link>
+        {links.map((l) => (
+          <a key={l.title} href={l.href} target="_blank" rel="noopener noreferrer" className="panel link-card">
+            <Icon name={l.icon} />
+            <b>{l.title}</b>
+            <span className="muted small">{l.text}</span>
+          </a>
+        ))}
+      </div>
+    </>
+  );
+}
