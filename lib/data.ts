@@ -15,12 +15,24 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const sb = await supabaseServer();
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user) return null;
-  const { data: rows } = await sb
+  const { data: rows, error: mErr } = await sb
     .from('memberships')
-    .select('role, org_id, organizations(kind)')
+    .select('role, org_id')
     .eq('user_id', auth.user.id);
-  const list = (rows ?? []) as unknown as { role: string; org_id: string; organizations: { kind: string } | null }[];
-  const isStaff = list.some((m) => m.organizations?.kind === 'agency' && m.role !== 'client');
+  if (mErr) console.error('[getViewer] memberships', mErr.message);
+  const mems = (rows ?? []) as { role: string; org_id: string }[];
+  const ids = mems.map((m) => m.org_id);
+  const { data: orgs, error: oErr } = ids.length
+    ? await sb.from('organizations').select('id, kind').in('id', ids)
+    : { data: [] as { id: string; kind: string }[], error: null };
+  if (oErr) console.error('[getViewer] organizations', oErr.message);
+  const kindOf = new Map((orgs ?? []).map((o: { id: string; kind: string }) => [o.id, o.kind]));
+  const list = mems.map((m) => ({ ...m, organizations: { kind: kindOf.get(m.org_id) ?? '' } }));
+  let isStaff = list.some((m) => m.organizations.kind === 'agency' && m.role !== 'client');
+  if (!isStaff) {
+    const { data: staff } = await sb.rpc('is_staff');
+    if (staff === true) isStaff = true;
+  }
   const { data: profile } = await sb.from('profiles').select('full_name').eq('id', auth.user.id).maybeSingle();
   return {
     id: auth.user.id,
