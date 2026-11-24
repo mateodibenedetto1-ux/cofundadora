@@ -5,7 +5,8 @@ import { supabaseServer } from '@/lib/supabase/server';
 
 export const metadata = { title: 'Ajustes' };
 
-export default async function Settings() {
+export default async function Settings({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const sp = await searchParams;
   let agencyId = '';
   if (!DEMO) {
     const sb = await supabaseServer();
@@ -22,6 +23,7 @@ export default async function Settings() {
           <p>El equipo de Seres Magnéticos ve y edita los portales de todas las fundadoras.</p>
         </div>
       </div>
+      {sp.error && <p className="panel panel-pad small" style={{ color: 'var(--brand)', marginBottom: 20 }}>Algo no se guardó: {sp.error}</p>}
       <form action={updateMyName} className="panel panel-pad row wrap" style={{ marginBottom: 20, gap: 14, alignItems: 'flex-end' }}>
         <label className="field grow" style={{ minWidth: 220 }}>Tu nombre
           <input className="input" name="full_name" defaultValue={me.name} required />
@@ -38,6 +40,7 @@ export default async function Settings() {
                   <div style={{ fontWeight: 500 }}>{m.name || m.email}</div>
                   <div className="muted small">{m.email}</div>
                 </div>
+                {m.pending && <span className="tag brand">Invitación pendiente</span>}
                 <span className="tag">{m.role === 'owner' ? 'Dueño' : m.role === 'admin' ? 'Admin' : 'Equipo'}</span>
               </li>
             ))}

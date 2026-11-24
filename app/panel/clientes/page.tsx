@@ -7,8 +7,8 @@ import type { ClientSummary } from '@/lib/types';
 
 export const metadata = { title: 'Fundadoras' };
 
-export default async function Clients() {
-  const everyone = await listClients();
+export default async function Clients({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const [everyone, sp] = await Promise.all([listClients(), searchParams]);
   const past = everyone.filter((c) => c.status === 'finalizado');
   const clients = everyone.filter((c) => c.status !== 'finalizado');
   return (
@@ -41,6 +41,7 @@ export default async function Clients() {
         <p className="muted small" style={{ marginBottom: 18 }}>
           Al crearla se arma su portal. Desde la pestaña Accesos le envías la invitación por email.
         </p>
+        {sp.error && <p className="small" style={{ color: 'var(--brand)', marginBottom: 14 }}>No se pudo crear: {sp.error}</p>}
         <form action={createClientAccount} className="stack" style={{ gap: 14 }}>
           <div className="form-grid">
             <label className="field">Nombre de la fundadora o de su marca<input className="input" name="name" required /></label>

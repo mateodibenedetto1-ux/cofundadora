@@ -70,7 +70,7 @@ export async function createClientAccount(form: FormData) {
     email_domains: domains,
     start_date: str(form, 'start_date'),
   });
-  if (error) throw new Error(error.message);
+  if (error) redirect(`/panel/clientes?error=${encodeURIComponent(error.message)}`);
   refresh();
   redirect(`/panel/clientes/${slug}`);
 }
@@ -354,7 +354,8 @@ export async function inviteClientUser(form: FormData) {
   const email = str(form, 'email')?.toLowerCase();
   const orgId = str(form, 'org_id');
   const role = str(form, 'role') ?? 'client';
-  if (!email || !orgId) return;
+  if (!email) return;
+  if (!orgId) redirect('/panel/ajustes?error=' + encodeURIComponent('No se encontró la cuenta de Seres Magnéticos.'));
   const admin = supabaseAdmin();
   let userId: string | undefined;
   const { data: invited, error } = await admin.auth.admin.inviteUserByEmail(email, {
@@ -366,9 +367,10 @@ export async function inviteClientUser(form: FormData) {
     // Ya existe: lo buscamos y solo sumamos el acceso
     const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
     userId = list.users.find((u) => u.email?.toLowerCase() === email)?.id;
-    if (!userId) throw new Error(error.message);
+    if (!userId) redirect('/panel/ajustes?error=' + encodeURIComponent(error.message));
   }
-  await admin.from('memberships').upsert({ user_id: userId, org_id: orgId, role }, { onConflict: 'user_id,org_id' });
+  const { error: mErr } = await admin.from('memberships').upsert({ user_id: userId, org_id: orgId, role }, { onConflict: 'user_id,org_id' });
+  if (mErr) redirect('/panel/ajustes?error=' + encodeURIComponent(mErr.message));
   refresh();
 }
 
@@ -378,7 +380,8 @@ export async function updateMyName(form: FormData) {
   const name = str(form, 'full_name');
   if (!name) return;
   const sb = await supabaseServer();
-  await sb.from('profiles').upsert({ id: v.id, email: v.email, full_name: name });
+  const { error } = await sb.from('profiles').upsert({ id: v.id, email: v.email, full_name: name });
+  if (error) redirect('/panel/ajustes?error=' + encodeURIComponent(error.message));
   refresh();
 }
 

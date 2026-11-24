@@ -243,16 +243,24 @@ export async function getConnections(): Promise<FathomConnection[]> {
   return (data ?? []) as FathomConnection[];
 }
 
-export async function getMembers(orgId: string): Promise<{ email: string; name: string; role: string }[]> {
+export async function getMembers(orgId: string): Promise<{ email: string; name: string; role: string; pending: boolean }[]> {
   if (DEMO) return [];
   const sb = await supabaseServer();
   const { data } = await sb.from('memberships').select('role, user_id').eq('org_id', orgId);
   const ids = (data ?? []).map((m) => m.user_id);
   if (!ids.length) return [];
   const { data: profiles } = await sb.from('profiles').select('id, email, full_name').in('id', ids);
+  // Quien todavía no entró nunca figura como "invitación pendiente"
+  const { supabaseAdmin } = await import('./supabase/admin');
+  const admin = supabaseAdmin();
+  const signedIn = new Map<string, boolean>();
+  await Promise.all(ids.map(async (id) => {
+    const { data: u } = await admin.auth.admin.getUserById(id);
+    signedIn.set(id, Boolean(u?.user?.last_sign_in_at));
+  }));
   return (data ?? []).map((m) => {
     const p = profiles?.find((x) => x.id === m.user_id);
-    return { email: p?.email ?? '', name: p?.full_name ?? '', role: m.role };
+    return { email: p?.email ?? '', name: p?.full_name ?? '', role: m.role, pending: !signedIn.get(m.user_id) };
   });
 }
 
