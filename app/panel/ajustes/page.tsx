@@ -50,9 +50,14 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <form action={inviteClientUser} className="panel panel-pad stack" style={{ gap: 14 }}>
           <b style={{ fontWeight: 600 }}>Sumar a alguien del equipo</b>
           <input type="hidden" name="org_id" value={agencyId} />
-          <input type="hidden" name="role" value="member" />
           <label className="field">Nombre<input className="input" name="name" /></label>
           <label className="field">Email<input className="input" name="email" type="email" required /></label>
+          <label className="field">Rol
+            <select className="select" name="role" defaultValue="member">
+              <option value="admin">Admin: ve y edita todo, puede sumar gente</option>
+              <option value="member">Equipo: ve y edita los portales</option>
+            </select>
+          </label>
           <div><button className="btn primary">Enviar invitación</button></div>
         </form>
       </div>

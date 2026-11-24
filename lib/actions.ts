@@ -353,7 +353,8 @@ export async function inviteClientUser(form: FormData) {
   await requireStaff();
   const email = str(form, 'email')?.toLowerCase();
   const orgId = str(form, 'org_id');
-  const role = str(form, 'role') ?? 'client';
+  const raw = str(form, 'role') ?? 'client';
+  const role = ['admin', 'member', 'client'].includes(raw) ? raw : 'client';
   if (!email) return;
   if (!orgId) redirect('/panel/ajustes?error=' + encodeURIComponent('No se encontró la cuenta de Seres Magnéticos.'));
   const admin = supabaseAdmin();
