@@ -546,6 +546,7 @@ export async function saveBrain(orgId: string, patch: Record<string, string>) {
   const data = { ...((cur?.data as Record<string, string>) ?? {}), ...patch };
   const { error } = await sb.from('client_brain').upsert({ org_id: orgId, data, updated_at: new Date().toISOString(), updated_by: v.id ?? null });
   if (error) throw new Error(error.message);
+  await syncBrainDoc(orgId, data);
   // Las tareas "Completar …" de cada etapa se tildan solas cuando la sección llega al 80 %
   const { BRAIN, sectionPct } = await import('./brain');
   const ready = BRAIN.filter((s) => sectionPct(data, s) >= 80).map((s) => s.k);
@@ -569,6 +570,19 @@ export async function saveBrain(orgId: string, patch: Record<string, string>) {
   }
 }
 
+/** Mantiene en la Biblioteca un documento con todo el Segundo cerebro, sección por sección. */
+async function syncBrainDoc(orgId: string, data: Record<string, string>) {
+  const admin = supabaseAdmin();
+  const { brainMarkdown } = await import('./brain');
+  const { data: org } = await admin.from('organizations').select('name').eq('id', orgId).single();
+  const name = (data['partida.nombre'] || org?.name || '').trim();
+  const body = brainMarkdown(data, name).replace(/^# .*\n+/, '');
+  const title = 'Tu Segundo cerebro';
+  const { data: existing } = await admin.from('documents').select('id').eq('org_id', orgId).eq('kind', 'diagnostico').eq('title', title).maybeSingle();
+  if (existing) await admin.from('documents').update({ body_md: body, updated_at: new Date().toISOString() }).eq('id', existing.id);
+  else await admin.from('documents').insert({ org_id: orgId, kind: 'diagnostico', title, body_md: body, visible_to_client: true });
+}
+
 /** Carga un Segundo cerebro ficticio para probar la plataforma. Solo staff. */
 export async function fillBrainSample(orgId: string, slug: string) {
   if (DEMO) return;
@@ -576,7 +590,7 @@ export async function fillBrainSample(orgId: string, slug: string) {
   const { BRAIN_SAMPLE } = await import('./brain-sample');
   await saveBrain(orgId, BRAIN_SAMPLE);
   refresh();
-  redirect(`/panel/clientes/${slug}/cerebro`);
+  redirect(`/panel/clientes/${slug}/cerebro?cargado=${Date.now()}`);
 }
 
 /** Crea el Recorrido Fractal de un cliente de Consulting: una fase por módulo del curso y sus tareas. */

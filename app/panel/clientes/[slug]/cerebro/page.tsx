@@ -32,7 +32,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
           <button className={`btn ${started ? '' : 'primary'}`}>{started ? 'Volver a crear' : 'Crear recorrido'}</button>
         </form>
       </div>
-      <BrainEditor orgId={org.id} name={org.name} initial={data} demo={DEMO} roadmap={meta} initialSection={sp.s} staff roadmapHref={`/panel/clientes/${org.slug}/roadmap`} />
+      <BrainEditor key={Object.keys(data).length} orgId={org.id} name={org.name} initial={data} demo={DEMO} roadmap={meta} initialSection={sp.s} staff roadmapHref={`/panel/clientes/${org.slug}/roadmap`} />
     </div>
   );
 }
