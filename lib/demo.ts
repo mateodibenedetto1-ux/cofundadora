@@ -1,4 +1,6 @@
 // Datos de ejemplo para ver la app sin base de datos (modo demo).
+import { brainSectionDocs } from './brain';
+import { BRAIN_SAMPLE } from './brain-sample';
 import type { ActionItem, Call, Doc, FathomConnection, Milestone, Org, Resource } from './types';
 
 const AG = 'org-sm';
@@ -84,6 +86,7 @@ function res(org_id: string, call_id: string, title: string, url: string, kind: 
 }
 
 export const demoDocs: Doc[] = [
+  ...brainSectionDocs(BRAIN_SAMPLE).map((d, i): Doc => ({ id: `brain-${i}`, org_id: 'org-norte', call_id: null, kind: 'diagnostico', visible_to_client: true, created_at: daysAgo(1), updated_at: daysAgo(1), ...d })),
   {
     id: 'doc-1', org_id: 'org-norte', call_id: 'call-2', title: 'Resumen — Llamada 1:1 — ICP y anuncios', kind: 'resumen',
     visible_to_client: true, created_at: daysAgo(8), updated_at: daysAgo(8),

@@ -30,7 +30,12 @@ export function Library({ docs, base }: { docs: Doc[]; base: string }) {
   }
   const term = q.trim().toLowerCase();
   const visible = term ? docs.filter((d) => d.title.toLowerCase().includes(term)) : docs;
-  const shelves = ORDER.map((k) => ({ k, list: visible.filter((d) => d.kind === k) })).filter((s) => s.list.length);
+  const shelves = ORDER.map((k) => {
+    const list = visible.filter((d) => d.kind === k);
+    // Fundamentos va en el orden del Segundo cerebro (01, 02, …)
+    if (k === 'diagnostico') list.sort((a, b) => a.title.localeCompare(b.title, 'es', { numeric: true }));
+    return { k, list };
+  }).filter((s) => s.list.length);
 
   return (
     <div className="library">

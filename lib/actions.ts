@@ -570,17 +570,21 @@ export async function saveBrain(orgId: string, patch: Record<string, string>) {
   }
 }
 
-/** Mantiene en la Biblioteca un documento con todo el Segundo cerebro, sección por sección. */
+/** Mantiene en la Biblioteca (estante Fundamentos) un documento por sección del Segundo cerebro. */
 async function syncBrainDoc(orgId: string, data: Record<string, string>) {
   const admin = supabaseAdmin();
-  const { brainMarkdown } = await import('./brain');
-  const { data: org } = await admin.from('organizations').select('name').eq('id', orgId).single();
-  const name = (data['partida.nombre'] || org?.name || '').trim();
-  const body = brainMarkdown(data, name).replace(/^# .*\n+/, '');
-  const title = 'Tu Segundo cerebro';
-  const { data: existing } = await admin.from('documents').select('id').eq('org_id', orgId).eq('kind', 'diagnostico').eq('title', title).maybeSingle();
-  if (existing) await admin.from('documents').update({ body_md: body, updated_at: new Date().toISOString() }).eq('id', existing.id);
-  else await admin.from('documents').insert({ org_id: orgId, kind: 'diagnostico', title, body_md: body, visible_to_client: true });
+  const { brainSectionDocs } = await import('./brain');
+  const { data: existing } = await admin.from('documents').select('id, title').eq('org_id', orgId).eq('kind', 'diagnostico');
+  const byTitle = new Map((existing ?? []).map((d) => [d.title as string, d.id as string]));
+  // El documento único de la versión anterior se reemplaza por uno por sección
+  const legacy = byTitle.get('Tu Segundo cerebro');
+  if (legacy) await admin.from('documents').delete().eq('id', legacy);
+  const now = new Date().toISOString();
+  for (const { title, body_md } of brainSectionDocs(data)) {
+    const id = byTitle.get(title);
+    if (id) await admin.from('documents').update({ body_md, updated_at: now }).eq('id', id);
+    else await admin.from('documents').insert({ org_id: orgId, kind: 'diagnostico', title, body_md, visible_to_client: true });
+  }
 }
 
 /** Carga un Segundo cerebro ficticio para probar la plataforma. Solo staff. */

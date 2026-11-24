@@ -238,3 +238,21 @@ export function brainMarkdown(data: BrainData, name: string) {
   }
   return out.join('\n');
 }
+
+/** Un documento por sección completada del Segundo cerebro (para el estante Fundamentos de la Biblioteca). */
+export function brainSectionDocs(data: BrainData): { title: string; body_md: string }[] {
+  const out: { title: string; body_md: string }[] = [];
+  for (const sec of BRAIN) {
+    const parts: string[] = [];
+    for (const f of sec.fields) {
+      const v = data[`${sec.k}.${f.k}`]?.trim();
+      if (!v) continue;
+      // Varias líneas se muestran como lista para que no se peguen
+      const lines = v.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+      const body = lines.length > 1 ? lines.map((l) => `- ${l.replace(/^[-•]\s*/, '')}`).join('\n') : lines[0];
+      parts.push(`### ${f.label}`, '', body, '');
+    }
+    if (parts.length) out.push({ title: `${String(sec.n).padStart(2, '0')} · ${sec.title}`, body_md: parts.join('\n') });
+  }
+  return out;
+}

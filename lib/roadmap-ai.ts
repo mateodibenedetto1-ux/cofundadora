@@ -127,8 +127,10 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
   const setStatus = (roadmap_status: string, extra: Record<string, unknown> = {}) =>
     sb.from('client_brain').update({ roadmap_status, ...extra }).eq('org_id', orgId);
   try {
-    const key = process.env.ANTHROPIC_API_KEY;
-    if (!key) throw new Error('Falta ANTHROPIC_API_KEY en Vercel');
+    // Primero la API key de la fundadora; si no conectó una, la del equipo
+    const { getOrgAiKey } = await import('./aikeys');
+    const key = (await getOrgAiKey(orgId)) ?? process.env.ANTHROPIC_API_KEY;
+    if (!key) throw new Error('Para crear el roadmap, la fundadora tiene que conectar su API key en Visionaria.');
     const [{ data: org }, { data: brain }] = await Promise.all([
       sb.from('organizations').select('id, name, start_date, responsables').eq('id', orgId).single(),
       sb.from('client_brain').select('data').eq('org_id', orgId).single(),
@@ -222,7 +224,12 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
     await setStatus('listo', { roadmap_at: new Date().toISOString(), roadmap_error: null });
     return { ok: true };
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
+    const raw = e instanceof Error ? e.message : String(e);
+    const message = /credit balance/i.test(raw)
+      ? 'La cuenta de Anthropic no tiene saldo. Carga créditos en console.anthropic.com → Billing y vuelve a intentar.'
+      : /invalid x-api-key|authentication/i.test(raw)
+        ? 'La API key de Anthropic no es válida. Conecta una nueva en Visionaria.'
+        : raw;
     console.error('No se pudo generar el roadmap', message);
     await setStatus('error', { roadmap_error: message.slice(0, 400) });
     return { ok: false, error: message };
