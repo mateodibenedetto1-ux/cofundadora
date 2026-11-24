@@ -569,6 +569,16 @@ export async function saveBrain(orgId: string, patch: Record<string, string>) {
   }
 }
 
+/** Carga un Segundo cerebro ficticio para probar la plataforma. Solo staff. */
+export async function fillBrainSample(orgId: string, slug: string) {
+  if (DEMO) return;
+  await requireStaff();
+  const { BRAIN_SAMPLE } = await import('./brain-sample');
+  await saveBrain(orgId, BRAIN_SAMPLE);
+  refresh();
+  redirect(`/panel/clientes/${slug}/cerebro`);
+}
+
 /** Crea el Recorrido Fractal de un cliente de Consulting: una fase por módulo del curso y sus tareas. */
 export async function startJourney(orgId: string) {
   if (DEMO) return;
