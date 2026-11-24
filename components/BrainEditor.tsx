@@ -99,7 +99,7 @@ export function BrainEditor({ orgId, name, initial, demo, roadmap, staff, roadma
     const el = top.current;
     if (!el) return;
     const y = el.getBoundingClientRect().top;
-    if (y < 0) window.scrollTo({ top: window.scrollY + y - 16, behavior: 'smooth' });
+    if (y < 0) window.scrollTo({ top: window.scrollY + y - 16, behavior: 'auto' });
   };
 
   const download = () => {

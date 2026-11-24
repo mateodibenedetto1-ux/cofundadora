@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import { getActions, getCalls, getMilestones, getOrgBySlug } from '@/lib/data';
 import { VERTICALS } from '@/lib/verticals';
 import { computeRoadmap } from '@/lib/roadmap';
@@ -58,7 +59,7 @@ export default async function Overview({ params }: { params: Promise<{ slug: str
           <label className="field">Programa / plataforma<input className="input" name="program_url" type="url" defaultValue={org.program_url ?? ''} /></label>
           <label className="field">Notion (referencia interna)<input className="input" name="notion_url" type="url" defaultValue={org.notion_url ?? ''} /></label>
         </div>
-        <div><button className="btn primary">Guardar cambios</button></div>
+        <div><SubmitButton pendingLabel="Guardando…">Guardar cambios</SubmitButton></div>
       </form>
 
       <aside className="stack" style={{ gap: 14 }}>

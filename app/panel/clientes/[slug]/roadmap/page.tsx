@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import { getMilestones, getOrgBySlug } from '@/lib/data';
 import { addMilestone, deleteMilestone, resetMilestoneAuto, setMilestoneStatus } from '@/lib/actions';
 import { computeRoadmap } from '@/lib/roadmap';
@@ -48,7 +49,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <label className="field">Fecha de inicio o del hito<input className="input" name="due_date" type="date" required /></label>
           <label className="field">Objetivo o detalle<input className="input" name="detail" /></label>
         </div>
-        <div><button className="btn primary">Agregar</button></div>
+        <div><SubmitButton pendingLabel="Agregando…">Agregar</SubmitButton></div>
       </form>
     </div>
   );

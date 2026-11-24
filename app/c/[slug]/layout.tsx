@@ -5,6 +5,7 @@ import { signOut } from '@/lib/actions';
 import { Mark } from '@/components/Mark';
 import { NavLink } from '@/components/NavLink';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { MobileMenu } from '@/components/MobileMenu';
 
 export default async function PortalLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -40,6 +41,27 @@ export default async function PortalLayout({ children, params }: { children: Rea
           <NavLink href={`${base}/biblioteca`}>Biblioteca</NavLink>
           <NavLink href={`${base}/roadmap`}>Roadmap</NavLink>
         </nav>
+        <MobileMenu side="portal" mark={<Mark href={base} />}>
+          <nav className="drawer-nav" aria-label="Secciones">
+            <NavLink href={base} exact>Inicio</NavLink>
+            <NavLink href={`${base}/cerebro`}>Segundo cerebro</NavLink>
+            <NavLink href={`${base}/ia`}>Visionaria</NavLink>
+            <NavLink href={`${base}/contenido`}>Contenido</NavLink>
+            <NavLink href={`${base}/accionables`}>Accionables</NavLink>
+            <NavLink href={`${base}/recursos`}>Recursos</NavLink>
+            <NavLink href={`${base}/biblioteca`}>Biblioteca</NavLink>
+            <NavLink href={`${base}/roadmap`}>Roadmap</NavLink>
+          </nav>
+          <div className="row side-foot">
+            <span className="small grow muted">{org.name}</span>
+            <ThemeToggle />
+            {!DEMO && !v.isStaff && (
+              <form action={signOut}>
+                <button className="btn ghost sm">Salir</button>
+              </form>
+            )}
+          </div>
+        </MobileMenu>
         {children}
       </div>
     </>

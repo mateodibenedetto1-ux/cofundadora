@@ -156,7 +156,9 @@ export function ActionList({ items, calls, staff, demo, initialFilter = 'pendien
       <div className="panel">
         {groups.length === 0 && (
           <p className="empty">
-            {filter === 'pendientes' ? 'No te queda nada pendiente. Vas al día.' : 'Todavía no hay accionables. Aparecen aquí cuando se crea tu recorrido.'}
+            {tops.length === 0
+              ? (staff ? 'Todavía no tiene accionables. Aparecen cuando se arma su recorrido o cuando los cargas tú.' : 'Todavía no hay accionables. Aparecen aquí cuando se crea tu recorrido.')
+              : filter === 'pendientes' ? (staff ? 'No tiene nada pendiente.' : 'No te queda nada pendiente. Vas al día.') : 'Todavía no hay accionables.'}
           </p>
         )}
         {groups.map((g) => (

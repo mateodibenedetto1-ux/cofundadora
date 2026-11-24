@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import { getMembers, getOrgBySlug } from '@/lib/data';
 import { inviteClientUser } from '@/lib/actions';
 
@@ -26,7 +27,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <input type="hidden" name="org_id" value={org.id} />
         <label className="field">Nombre<input className="input" name="name" /></label>
         <label className="field">Email<input className="input" name="email" type="email" required /></label>
-        <div><button className="btn primary">Enviar invitación</button></div>
+        <div><SubmitButton pendingLabel="Enviando…">Enviar invitación</SubmitButton></div>
       </form>
     </div>
   );

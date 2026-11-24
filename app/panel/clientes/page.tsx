@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import Link from 'next/link';
 import { listClients } from '@/lib/data';
 import { createClientAccount } from '@/lib/actions';
@@ -59,7 +60,7 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
             </label>
             <label className="field">Fecha de inicio<input className="input" name="start_date" type="date" /></label>
           </div>
-          <div><button className="btn primary">Crear fundadora</button></div>
+          <div><SubmitButton pendingLabel="Creando portal…">Crear fundadora</SubmitButton></div>
         </form>
       </section>
     </>

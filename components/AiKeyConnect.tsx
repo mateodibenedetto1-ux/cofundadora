@@ -22,7 +22,7 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
   },
 ];
 
-export function AiKeyConnect({ orgId, connected, hint, compact }: { orgId: string; connected: boolean; hint: string | null; compact?: boolean }) {
+export function AiKeyConnect({ orgId, connected, hint, compact, preview }: { orgId: string; connected: boolean; hint: string | null; compact?: boolean; preview?: boolean }) {
   const [key, setKey] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(!compact);
@@ -75,6 +75,9 @@ export function AiKeyConnect({ orgId, connected, hint, compact }: { orgId: strin
             ))}
           </ol>
 
+          {preview ? (
+            <p className="muted small">Ella pega su key en este paso desde su portal. Nadie del equipo la ve.</p>
+          ) : (<>
           <form className="ai-key-form" onSubmit={submit}>
             <input
               className="input"
@@ -92,6 +95,7 @@ export function AiKeyConnect({ orgId, connected, hint, compact }: { orgId: strin
           <p className="muted small" style={{ marginTop: 10 }}>
             Tu key se guarda cifrada y solo se usa para tus conversaciones con Visionaria. Nadie del equipo puede verla. Puedes desconectarla aquí o revocarla desde Anthropic cuando quieras.
           </p>
+          </>)}
         </>
       )}
     </div>

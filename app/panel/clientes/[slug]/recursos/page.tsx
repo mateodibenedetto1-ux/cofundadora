@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import { getCalls, getOrgBySlug, getResources } from '@/lib/data';
 import { addResource, deleteResource } from '@/lib/actions';
 import { Resources } from '@/components/Resources';
@@ -15,7 +16,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <label className="field">Link<input className="input" name="url" type="url" required placeholder="https://docs.google.com/…" /></label>
           <label className="field">Nombre<input className="input" name="title" placeholder="Biblia del cliente ideal" /></label>
         </div>
-        <div><button className="btn primary">Compartir</button></div>
+        <div><SubmitButton pendingLabel="Compartiendo…">Compartir</SubmitButton></div>
       </form>
       <Resources
         items={items}

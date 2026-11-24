@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import { getMembers, requireViewer } from '@/lib/data';
 import { inviteClientUser, updateMyName } from '@/lib/actions';
 import { DEMO } from '@/lib/env';
@@ -28,7 +29,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <label className="field grow" style={{ minWidth: 220 }}>Tu nombre
           <input className="input" name="full_name" defaultValue={me.name} required />
         </label>
-        <button className="btn primary">Guardar nombre</button>
+        <SubmitButton pendingLabel="Guardando…">Guardar nombre</SubmitButton>
       </form>
       <div className="two">
         <section>
@@ -58,7 +59,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
               <option value="member">Equipo: ve y edita los portales</option>
             </select>
           </label>
-          <div><button className="btn primary">Enviar invitación</button></div>
+          <div><SubmitButton pendingLabel="Enviando…">Enviar invitación</SubmitButton></div>
         </form>
       </div>
     </>

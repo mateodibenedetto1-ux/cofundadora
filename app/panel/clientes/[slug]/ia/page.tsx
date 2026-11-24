@@ -11,23 +11,27 @@ export default async function ClientIa({ params }: { params: Promise<{ slug: str
   const org = await getOrgBySlug((await params).slug);
   if (org.segment !== 'consulting') notFound();
   const key = DEMO ? { connected: false, hint: null, verified_at: null } : await getAiKeyStatus(org.id);
-  return (
-    <div className="stack">
-      <div className="panel panel-pad">
-        <div className="row between" style={{ flexWrap: 'wrap', gap: 10 }}>
-          <div>
-            <b>Visionaria de esta fundadora</b>
-            <p className="muted small">
-              En su portal, {org.name} usa Visionaria con su propia API key de Anthropic. Aquí respondes tú con la key del equipo y el método completo, con su contexto cargado.
-            </p>
-          </div>
-          {key.connected
-            ? <AiKeyConnect orgId={org.id} connected hint={key.hint} />
-            : <span className="tag">Todavía no conectó su API key</span>}
-        </div>
+
+  // Sin su API key, Visionaria no se puede usar: solo se muestra la guía que ella ve en su portal.
+  if (!key.connected) {
+    return (
+      <div className="stack" style={{ gap: 12 }}>
+        <p className="muted small">
+          {org.name} todavía no conectó su API key. Esto es lo que ve en su portal: cuando la conecte, Visionaria se activa acá y allá.
+        </p>
+        <AiKeyConnect orgId={org.id} connected={false} hint={null} preview />
       </div>
-      {!key.connected && <AiKeyConnect orgId={org.id} connected={false} hint={null} compact />}
-      <FractalChat fixedClient={org.slug} mode="staff" />
+    );
+  }
+
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      <AiKeyConnect orgId={org.id} connected hint={key.hint} />
+      <FractalChat
+        fixedClient={org.slug}
+        mode="client"
+        intro={`Respondo con el Segundo cerebro de ${org.name} y el método MAGNA. Lo que hables acá usa su API key.`}
+      />
     </div>
   );
 }

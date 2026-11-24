@@ -5,6 +5,7 @@ import { Mark } from '@/components/Mark';
 import { NavLink } from '@/components/NavLink';
 import { Icon } from '@/components/Icon';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { MobileMenu } from '@/components/MobileMenu';
 
 const NAV = [
   { href: '/panel', label: 'Home', icon: 'home', exact: true },
@@ -21,24 +22,35 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <div className="shell">
         <aside className="side">
           <Mark href="/panel" />
-          <nav aria-label="Panel">
-            {NAV.map((n) => (
-              <NavLink key={n.href} href={n.href} className="nav" exact={n.exact}>
-                <Icon name={n.icon} /> {n.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="row" style={{ marginTop: 'auto', padding: '0 10px', gap: 4 }}>
-            <span className="small grow muted">{v.name}</span>
-            <ThemeToggle />
-            {!DEMO && (
-              <form action={signOut}>
-                <button className="btn ghost sm" aria-label="Salir"><Icon name="out" /></button>
-              </form>
-            )}
-          </div>
+          <SideContent name={v.name} />
         </aside>
+        <MobileMenu mark={<Mark href="/panel" />}>
+          <SideContent name={v.name} />
+        </MobileMenu>
         <main className="main">{children}</main>
+      </div>
+    </>
+  );
+}
+
+function SideContent({ name }: { name: string }) {
+  return (
+    <>
+      <nav aria-label="Panel">
+        {NAV.map((n) => (
+          <NavLink key={n.href} href={n.href} className="nav" exact={n.exact}>
+            <Icon name={n.icon} /> {n.label}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="row side-foot">
+        <span className="small grow muted">{name}</span>
+        <ThemeToggle />
+        {!DEMO && (
+          <form action={signOut}>
+            <button className="btn ghost sm" aria-label="Salir"><Icon name="out" /></button>
+          </form>
+        )}
       </div>
     </>
   );

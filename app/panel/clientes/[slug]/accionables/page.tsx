@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/SubmitButton';
 import { getActions, getCalls, getMilestones, getOrgBySlug } from '@/lib/data';
 import { computeRoadmap } from '@/lib/roadmap';
 import { addAction, closeOverdueActions } from '@/lib/actions';
@@ -64,7 +65,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             <label className="field">Fecha límite<input className="input" name="due_date" type="date" /></label>
           </div>
           <datalist id="areas">{['Marketing', 'Contenido', 'Comercial', 'Operaciones', 'Adquisición', 'Producto', 'Branding', 'Métricas', 'General'].map((a) => <option key={a} value={a} />)}</datalist>
-          <div><button className="btn primary">Agregar</button></div>
+          <div><SubmitButton pendingLabel="Agregando…">Agregar</SubmitButton></div>
         </form>
       </details>
       <ActionList items={actions} calls={calls} staff demo={DEMO} initialFilter="todos" responsables={org.responsables ?? []} />
