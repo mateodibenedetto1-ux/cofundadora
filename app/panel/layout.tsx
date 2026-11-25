@@ -11,6 +11,7 @@ const NAV = [
   { href: '/panel', label: 'Home', icon: 'home', exact: true },
   { href: '/panel/clientes', label: 'Fundadoras', icon: 'users' },
   { href: '/panel/contenido', label: 'Contenido', icon: 'play' },
+  { href: '/panel/metodo', label: 'Método', icon: 'book' },
   { href: '/panel/ajustes', label: 'Ajustes', icon: 'gear' },
 ];
 

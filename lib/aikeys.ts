@@ -5,13 +5,13 @@ import { decrypt, encrypt } from './secrets';
 export interface AiKeyStatus { connected: boolean; hint: string | null; verified_at: string | null }
 
 export async function getAiKeyStatus(orgId: string): Promise<AiKeyStatus> {
-  const { data } = await supabaseAdmin().from('ai_keys').select('key_hint, verified_at').eq('org_id', orgId).maybeSingle();
+  const { data } = await supabaseAdmin().from('ai_keys').select('key_hint, verified_at').eq('org_id', orgId).eq('provider', 'anthropic').maybeSingle();
   return { connected: Boolean(data), hint: data?.key_hint ?? null, verified_at: data?.verified_at ?? null };
 }
 
 /** API key del cliente, descifrada. Solo para usar en el servidor al llamar a Anthropic. */
 export async function getOrgAiKey(orgId: string): Promise<string | null> {
-  const { data } = await supabaseAdmin().from('ai_keys').select('key_enc').eq('org_id', orgId).maybeSingle();
+  const { data } = await supabaseAdmin().from('ai_keys').select('key_enc').eq('org_id', orgId).eq('provider', 'anthropic').maybeSingle();
   if (!data) return null;
   try { return decrypt(data.key_enc); } catch { return null; }
 }

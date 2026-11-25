@@ -650,3 +650,71 @@ export async function bulkCreateFundadoras(_prev: unknown, form: FormData) {
   refresh();
   return { results };
 }
+
+// ---------- Método MAGNA: documentos que usa Visionaria ----------
+
+export async function uploadKbFiles(_prev: unknown, form: FormData) {
+  if (DEMO) return { done: [] as string[], failed: [] as string[] };
+  await requireStaff();
+  const { extractText, isReadable, extOf, moduleOf, saveKbDoc } = await import('./kb');
+  const done: string[] = [];
+  const failed: string[] = [];
+  for (const f of form.getAll('files')) {
+    if (!(f instanceof File) || !f.size) continue;
+    if (!isReadable(f.name)) { failed.push(`${f.name} (formato no soportado)`); continue; }
+    try {
+      const text = await extractText(await f.arrayBuffer(), f.name);
+      await saveKbDoc({ source_id: `upload:${f.name.toLowerCase()}`, title: f.name.replace(/\.[^.]+$/, '').replace(/_/g, ' '), content: text, category: 'Subidos', module: moduleOf(f.name), kind: extOf(f.name) });
+      done.push(f.name);
+    } catch (e) {
+      failed.push(`${f.name} (${e instanceof Error ? e.message : 'error'})`);
+    }
+  }
+  refresh();
+  return { done, failed };
+}
+
+export async function deleteKbDoc(id: string) {
+  if (DEMO) return;
+  await requireStaff();
+  await supabaseAdmin().from('kb_documents').delete().eq('id', id).neq('status', 'config');
+  refresh();
+}
+
+export async function addDropboxFolder(form: FormData) {
+  if (DEMO) return;
+  await requireStaff();
+  const url = str(form, 'url');
+  if (!url || !/dropbox\.com\//.test(url)) redirect('/panel/metodo?error=' + encodeURIComponent('Pega el link de una carpeta compartida de Dropbox.'));
+  const { getDropboxConfig, setDropboxConfig } = await import('./kb');
+  const cfg = await getDropboxConfig();
+  const label = str(form, 'label') ?? 'Dropbox';
+  if (!cfg.folders.some((f) => f.url === url)) cfg.folders.push({ url: url!, label });
+  await setDropboxConfig(cfg);
+  refresh();
+}
+
+export async function removeDropboxFolder(url: string) {
+  if (DEMO) return;
+  await requireStaff();
+  const { getDropboxConfig, setDropboxConfig } = await import('./kb');
+  const cfg = await getDropboxConfig();
+  await setDropboxConfig({ ...cfg, folders: cfg.folders.filter((f) => f.url !== url) });
+  refresh();
+}
+
+export async function syncDropboxNow() {
+  if (DEMO) return;
+  await requireStaff();
+  const { syncDropbox } = await import('./kb');
+  await syncDropbox(50_000);
+  refresh();
+}
+
+export async function disconnectDropboxAction() {
+  if (DEMO) return;
+  await requireStaff();
+  const { disconnectDropbox } = await import('./kb');
+  await disconnectDropbox();
+  refresh();
+}

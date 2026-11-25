@@ -294,7 +294,7 @@ export interface KbDoc {
 export async function getKbDocs(): Promise<KbDoc[]> {
   if (DEMO) return [];
   const sb = await supabaseServer();
-  const { data } = await sb.from('kb_documents').select('id, source_id, title, category, module, source_url, kind, chars, summary, status, note, updated_at').order('category').order('title');
+  const { data } = await sb.from('kb_documents').select('id, source_id, title, category, module, source_url, kind, chars, summary, status, note, updated_at').neq('status', 'config').order('category').order('title');
   return (data ?? []) as KbDoc[];
 }
 
