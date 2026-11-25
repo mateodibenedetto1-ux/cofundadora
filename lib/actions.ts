@@ -636,3 +636,17 @@ export async function disconnectAiKey(orgId: string) {
   await deleteAiKey(orgId);
   refresh();
 }
+
+// ---------- Alta de fundadoras en bloque ----------
+
+export async function bulkCreateFundadoras(_prev: unknown, form: FormData) {
+  if (DEMO) return { results: [] };
+  await requireStaff();
+  const { parseFundadoras, provisionFundadora } = await import('./provision');
+  const list = parseFundadoras(str(form, 'list') ?? '');
+  const invite = form.get('invite') === 'on';
+  const results = [];
+  for (const f of list) results.push(await provisionFundadora(f, { invite }));
+  refresh();
+  return { results };
+}

@@ -1,4 +1,5 @@
 import { SubmitButton } from '@/components/SubmitButton';
+import { BulkImport } from '@/components/BulkImport';
 import Link from 'next/link';
 import { listClients } from '@/lib/data';
 import { createClientAccount } from '@/lib/actions';
@@ -20,6 +21,7 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
           <p>Cada fundadora de MAGNA tiene su propio portal: su segundo cerebro, Visionaria, su roadmap y todo lo que le compartes.</p>
         </div>
         <a href="#nueva" className="btn">Nueva fundadora</a>
+        <a href="#varias" className="btn ghost">Cargar varias</a>
       </div>
 
       <ul className="list panel" style={{ marginBottom: 32 }}>
@@ -62,6 +64,11 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
           </div>
           <div><SubmitButton pendingLabel="Creando portal…">Crear fundadora</SubmitButton></div>
         </form>
+      </section>
+      <section id="varias" className="panel panel-pad">
+        <h2 className="serif" style={{ fontSize: 26, marginBottom: 4 }}>Cargar varias a la vez</h2>
+        <p className="muted small" style={{ marginBottom: 18 }}>Se crea el portal de cada una con su Recorrido MAGNA. Si ya existe una con ese email, no se duplica.</p>
+        <BulkImport />
       </section>
     </>
   );
