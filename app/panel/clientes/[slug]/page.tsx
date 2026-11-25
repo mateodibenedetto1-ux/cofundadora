@@ -3,6 +3,8 @@ import { getActions, getCalls, getMilestones, getOrgBySlug } from '@/lib/data';
 import { VERTICALS } from '@/lib/verticals';
 import { computeRoadmap } from '@/lib/roadmap';
 import { RoadmapProgress } from '@/components/Roadmap';
+import { JourneyProgress } from '@/components/JourneyProgress';
+import { getJourneyView } from '@/lib/journey-view';
 import { syncClientNow, updateClientAccount } from '@/lib/actions';
 import { fmtDate, relative, STATUS_LABEL } from '@/lib/format';
 import { Cells } from '@/components/Cells';
@@ -10,7 +12,7 @@ import { WorkflowCard } from '@/components/WorkflowCard';
 
 export default async function Overview({ params }: { params: Promise<{ slug: string }> }) {
   const org = await getOrgBySlug((await params).slug);
-  const [actions, calls, milestones] = await Promise.all([getActions(org.id), getCalls(org.id), getMilestones(org.id)]);
+  const [actions, calls, milestones, journey] = await Promise.all([getActions(org.id), getCalls(org.id), getMilestones(org.id), getJourneyView(org)]);
   const roadmap = computeRoadmap(milestones, org.start_date);
   const overdue = actions.filter((a) => !a.parent_id && !a.done && a.due_date && a.due_date < new Date().toISOString().slice(0, 10)).length;
   const tops = actions.filter((a) => !a.parent_id);
@@ -63,7 +65,7 @@ export default async function Overview({ params }: { params: Promise<{ slug: str
       </form>
 
       <aside className="stack" style={{ gap: 14 }}>
-        {roadmap.totalWeeks > 0 && <RoadmapProgress view={roadmap} />}
+        {journey ? <div className="panel panel-pad"><JourneyProgress view={journey} /></div> : roadmap.totalWeeks > 0 && <RoadmapProgress view={roadmap} />}
         <div className="panel panel-pad stack" style={{ gap: 10 }}>
           <span className="muted small">Notion</span>
           <span className="small">

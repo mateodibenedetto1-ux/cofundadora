@@ -5,7 +5,7 @@ import { BRAIN, MODULES, brainMarkdown, brainPct, type BrainData } from './brain
 import { NOTION_MARKER, notionPageMarkdown } from './notion';
 import { retrieve } from './ai';
 import { pushActionToNotion } from './sync';
-import { buildJourney, journeyStart, leadShort, stageWindows } from './journey';
+import { buildJourney, journeyStart, leadShort } from './journey';
 
 /** Con este porcentaje del Segundo cerebro completo se crea el roadmap personalizado. */
 export const ROADMAP_THRESHOLD = 80;
@@ -108,17 +108,19 @@ async function fractalStandard(orgId: string) {
 const SYSTEM = `Eres la estratega de MAGNA, la mentoría de Val Lollett (Seres Magnéticos) para expertas que quieren convertirse en fundadoras de empresas escalables.
 Tu trabajo es crear el roadmap personalizado de una fundadora que completó su Segundo cerebro.
 
-El roadmap sigue SIEMPRE las etapas del Recorrido MAGNA, que son las secciones del Segundo cerebro, en este orden:
+El roadmap sigue SIEMPRE los hitos del método MAGNA, en este orden:
 {ETAPAS}
 
+El roadmap NO tiene semanas ni fechas: es una secuencia de hitos que cada fundadora cumple a su ritmo (puede hacerlo en días o en meses). No incluye las clases y sesiones de MAGNA del año (Mujer Magna, Marca memorable, Modelo maestro), que corren en paralelo. El método termina cuando tiene su marca clara, su metodología, su oferta high ticket (exponencial) y su low ticket listas para lanzar; el lanzamiento se diseña a su medida.
+
 Cómo hacerlo:
-- Básate en TODO lo que escribió en cada sección de su Segundo cerebro (no solo en sus objetivos). Cada etapa trabaja sobre sus secciones: en "Mujer Magna", su punto de partida e identidad; en "Brand Brief", su clienta ideal y su marca; y así.
+- Básate en TODO lo que escribió en cada sección de su Segundo cerebro (no solo en sus objetivos). Cada hito trabaja sobre sus secciones: en "Claridad de marca", su punto de partida, identidad, clienta, marca, mensaje y voz; y así.
 - Usa el método MAGNA (abajo) como estándar del tipo de hitos, el ritmo y el orden. Adáptalo a su negocio.
-- etapas: una por cada etapa (las 9), con "objetivo" (1 o 2 frases específicas para su negocio, de tú: qué va a lograr en esta etapa con lo que ya escribió) y "entregable" (lo concreto que queda hecho al terminarla).
-- hitos: 1 por etapa (2 si la etapa es de 2 semanas y lo amerita). Logros verificables del negocio, no "ver clases". Ej: "Oferta exponencial validada en 5 conversaciones".
-- tareas: 2 a 4 por etapa, accionables, título con verbo y menos de 90 caracteres, con owner ("cliente" para ella o "fractal" para el equipo de Seres Magnéticos), por_que (una frase de negocio), area y prioridad. No repitas las tareas que ya trae cada etapa: ver las clases, completar las secciones del Segundo cerebro y llevarlo a la sesión de MAGNA.
+- etapas: una por cada hito (los 6), con "objetivo" (1 o 2 frases específicas para su negocio, de tú: qué va a lograr en esta etapa con lo que ya escribió) y "entregable" (lo concreto que queda hecho al terminarla).
+- hitos: 1 o 2 logros por hito del método. Logros verificables del negocio, no "ver clases". Ej: "Oferta exponencial validada en 5 conversaciones".
+- tareas: 2 a 4 por etapa, accionables, título con verbo y menos de 90 caracteres, con owner ("cliente" para ella o "fractal" para el equipo de Seres Magnéticos), por_que (una frase de negocio), area y prioridad. No repitas las tareas que ya trae cada hito: ver las clases del método y completar las secciones del Segundo cerebro. Nunca pongas plazos en semanas.
 - Si algo del Segundo cerebro está vacío o flojo, la tarea de esa etapa es definirlo o mejorarlo.
-- resumen_md: documento para ella, en español cálido y de tú, con: "## Dónde estás hoy" (diagnóstico corto con sus datos), "## Tu norte a 90 días" (objetivo y métricas), "## Tu recorrido, etapa por etapa" (una línea por etapa con lo que logra), "## Lo que no vamos a hacer todavía" y "## Cómo medimos el avance". Conciso y específico.
+- resumen_md: documento para ella, en español cálido y de tú, con: "## Dónde estás hoy" (diagnóstico corto con sus datos), "## Tu norte" (objetivo y métricas), "## Tu recorrido, hito por hito" (una línea por hito con lo que logra), "## Lo que no vamos a hacer todavía" y "## Cómo medimos el avance". Conciso y específico.
 - No inventes datos ni prometas cifras. Responde únicamente llamando a la herramienta guardar_roadmap.`;
 
 /** Genera el roadmap personalizado (hitos + tareas + documento) para un cliente de consultoría. */
@@ -143,13 +145,13 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
     const { data: orgFull } = await sb.from('organizations').select('start_date, program_url').eq('id', orgId).single();
     const { start, exists } = await journeyStart(sb, orgId, orgFull?.start_date ?? null);
     if (!exists) await buildJourney(sb, orgId, start, orgFull?.program_url ?? null);
-    const wins = stageWindows(start);
+    const wins = MODULES.map((m) => ({ k: m.k, n: m.n, title: m.title, lead: m.lead }));
     const today = iso(new Date(Date.now() - 3 * 3600e3));
 
     const std = await fractalStandard(orgId);
     const etapas = wins.map((w) => {
       const secs = BRAIN.filter((b) => b.mod === w.k).map((b) => b.title).join(', ');
-      return `${w.n} ${w.title} · semanas ${w.startWeek}–${w.endWeek} (${w.start} a ${w.end}) · lidera ${leadShort(w.lead)} · secciones del Segundo cerebro: ${secs}`;
+      return `${w.n} ${w.title} · lidera ${leadShort(w.lead)} · secciones del Segundo cerebro: ${secs}`;
     }).join('\n');
 
     const anthropic = new Anthropic({ apiKey: key });
@@ -174,7 +176,6 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
     await sb.from('documents').delete().eq('org_id', orgId).eq('kind', 'estrategia').like('title', 'Tu roadmap personalizado%');
 
     const win = (k: string) => wins.find((w) => w.k === k) ?? wins[0];
-    const notPast = (d: string) => (d < today ? today : d);
 
     // Objetivo personalizado de cada etapa
     for (const e of plan.etapas ?? []) {
@@ -186,7 +187,7 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
 
     if (plan.hitos?.length) {
       const { error } = await sb.from('milestones').insert(plan.hitos.slice(0, 14).map((h, i) => ({
-        org_id: orgId, title: h.title.slice(0, 160), detail: h.detalle ?? null, due_date: win(h.modulo).end, kind: 'hito', source: 'ia', module: win(h.modulo).k, position: 100 + i,
+        org_id: orgId, title: h.title.slice(0, 160), detail: h.detalle ?? null, due_date: null, kind: 'hito', source: 'ia', module: win(h.modulo).k, position: 100 + i,
       })));
       if (error) throw new Error(error.message);
     }
@@ -197,15 +198,11 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
     const rows = (plan.tareas ?? []).slice(0, 36).map((t, i) => {
       const r = findResp(t.responsable);
       const w = win(t.modulo);
-      // Reparte las tareas de cada etapa entre su inicio y su fin
-      const n = perMod.get(w.k) ?? 0;
-      perMod.set(w.k, n + 1);
-      const span = (new Date(w.end).getTime() - new Date(w.start).getTime()) / DAY;
-      const due = addDays(w.start, Math.min(span, 2 + n * 2));
+      perMod.set(w.k, (perMod.get(w.k) ?? 0) + 1);
       return {
         org_id: orgId, title: t.title.slice(0, 200), why: t.por_que ?? null, area: t.area ?? null, priority: t.prioridad ?? null,
         owner: (r?.side as 'cliente' | 'fractal') ?? t.owner ?? 'cliente', responsable: r?.name ?? null,
-        due_date: notPast(due), position: 200 + i, source: 'roadmap', module: w.k, notion_dirty: true,
+        due_date: null, position: 200 + i, source: 'roadmap', module: w.k, notion_dirty: true,
       };
     });
     if (rows.length) {

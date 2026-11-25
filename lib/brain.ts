@@ -32,20 +32,17 @@ export interface Module {
 }
 
 export const MODULES: Module[] = [
-  { k: 'mujer', n: '01', title: 'Mujer Magna', about: 'Tu identidad de fundadora, tu visión y tu punto de partida.', lead: 'Val', weeks: 2 },
-  { k: 'brand', n: '02', title: 'Brand Brief', about: 'Tu clienta ideal y la esencia de tu marca.', lead: 'Val', weeks: 2 },
-  { k: 'comunicacion', n: '03', title: 'Brief de comunicación', about: 'Tu mensaje, tu narrativa y tu voz.', lead: 'Val', weeks: 1 },
-  { k: 'contenido', n: '04', title: 'Contenido magnífico', about: 'Contenido de posicionamiento con los frameworks de contenido magnífico.', lead: 'Val', weeks: 2 },
-  { k: 'metodologia', n: '05', title: 'Metodología', about: 'Tu método propio, paso a paso.', lead: 'Val', weeks: 2 },
-  { k: 'exponencial', n: '06', title: 'Oferta exponencial', about: 'La oferta que crece sin multiplicar tus horas.', lead: 'Val', weeks: 2 },
-  { k: 'lowticket', n: '07', title: 'Oferta low ticket', about: 'La puerta de entrada a tu mundo.', lead: 'Val', weeks: 2 },
-  { k: 'lanzamiento', n: '08', title: 'Lanzamiento', about: 'Lanzar, medir y volver a lanzar.', lead: 'Val', weeks: 2 },
-  { k: 'sistemas', n: '09', title: 'Sistemas y métricas', about: 'Tu operación, tus números y tus próximos pasos.', lead: 'Val', weeks: 1 },
+  { k: 'marca', n: '01', title: 'Claridad de marca', about: 'Tu Brand Brief: quién eres como fundadora, a quién le hablas y qué dice tu marca.', lead: 'Val', weeks: 0 },
+  { k: 'contenido', n: '02', title: 'Contenido de posicionamiento', about: 'Empezar a publicar con los frameworks de contenido magnífico.', lead: 'Val', weeks: 0 },
+  { k: 'metodologia', n: '03', title: 'Tu metodología', about: 'Tu método propio, paso a paso.', lead: 'Val', weeks: 0 },
+  { k: 'exponencial', n: '04', title: 'Oferta high ticket', about: 'Tu oferta exponencial: la que crece sin multiplicar tus horas.', lead: 'Val', weeks: 0 },
+  { k: 'lowticket', n: '05', title: 'Oferta low ticket', about: 'Una parte de tu oferta high ticket que funciona como puerta de entrada.', lead: 'Val', weeks: 0 },
+  { k: 'lanzamiento', n: '06', title: 'Lanzamiento', about: 'Tu lanzamiento, diseñado a tu medida y a tu energía.', lead: 'Val', weeks: 0 },
 ];
 
 export const BRAIN: BrainSection[] = [
   {
-    k: 'partida', n: 1, title: 'Punto de partida', mod: 'mujer',
+    k: 'partida', n: 1, title: 'Punto de partida', mod: 'marca',
     intro: 'Dónde está tu negocio hoy. Sé breve y honesta: no hay respuestas correctas.',
     fields: [
       { k: 'nombre', label: 'Nombre completo', short: true },
@@ -61,7 +58,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'identidad', n: 2, title: 'Identidad de fundadora', mod: 'mujer',
+    k: 'identidad', n: 2, title: 'Identidad de fundadora', mod: 'marca',
     intro: 'La mujer que está construyendo esta empresa. Primero la identidad; después las decisiones.',
     fields: [
       { k: 'vision', label: 'Tu visión a 3 años', help: 'Cómo se ve tu empresa, tu vida y tu día a día si todo sale bien.' },
@@ -73,7 +70,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'clienta', n: 3, title: 'Tu clienta ideal', mod: 'brand',
+    k: 'clienta', n: 3, title: 'Tu clienta ideal', mod: 'marca',
     intro: 'Cuanto más nítida sea tu clienta, mejor se diseñan tu oferta, tu contenido y tu venta.',
     fields: [
       { k: 'perfil', label: 'Perfil', help: 'Profesión, país, edad, ingresos y momento de vida.' },
@@ -89,7 +86,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'marca', n: 4, title: 'Esencia de marca', mod: 'brand',
+    k: 'marca', n: 4, title: 'Esencia de marca', mod: 'marca',
     intro: 'El porqué de tu marca y el lugar que quieres ocupar en la mente de tu clienta.',
     fields: [
       { k: 'nombre_marca', label: 'Nombre de tu marca', short: true },
@@ -102,7 +99,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'mensaje', n: 5, title: 'Mensaje y narrativa', mod: 'comunicacion',
+    k: 'mensaje', n: 5, title: 'Mensaje y narrativa', mod: 'marca',
     intro: 'Tu historia, tus creencias y lo que defiendes. Es lo que hace que te elijan a ti.',
     fields: [
       { k: 'historia', label: 'Tu historia de origen' },
@@ -114,7 +111,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'voz', n: 6, title: 'Tu voz', mod: 'comunicacion',
+    k: 'voz', n: 6, title: 'Tu voz', mod: 'marca',
     intro: 'Cómo hablas y cómo escribes, para que todo lo que crees suene a ti.',
     fields: [
       { k: 'tono', label: 'Tu tono', help: 'Adjetivos y ejemplos de cómo hablas.' },
@@ -183,7 +180,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'ia', n: 12, title: 'Reglas para Visionaria', mod: 'sistemas',
+    k: 'ia', n: 12, title: 'Reglas para Visionaria', mod: 'marca',
     intro: 'La guía que Visionaria va a respetar en cada respuesta, guion o documento que cree para ti.',
     fields: [
       { k: 'nunca', label: 'Lo que nunca debería hacer' },
@@ -194,7 +191,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'metricas', n: 13, title: 'Sistemas y métricas', mod: 'sistemas',
+    k: 'metricas', n: 13, title: 'Sistemas y métricas', mod: 'lanzamiento',
     intro: 'Tu operación y tus números: hacia dónde va tu empresa y cómo medimos que avanza.',
     fields: [
       { k: 'kpis', label: 'Los números que miras hoy', help: 'Alcance, leads, conversaciones, ventas, facturación.' },

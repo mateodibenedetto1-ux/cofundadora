@@ -179,7 +179,7 @@ export function BrainEditor({ orgId, name, initial, demo, roadmap, staff, roadma
       </aside>
 
       <section className="brain-body" key={section.k}>
-        <div className="brain-kicker">Sección {section.n} de {BRAIN.length} · Etapa {mod.n} {mod.title}</div>
+        <div className="brain-kicker">Sección {section.n} de {BRAIN.length} · Hito {mod.n} {mod.title}</div>
         <h2>{section.title}</h2>
         <p className="muted">{section.intro}</p>
         <div className="bar" style={{ margin: '14px 0 26px', maxWidth: 260 }}><span style={{ width: `${sectionPct(data, section)}%` }} /></div>

@@ -5,26 +5,15 @@ import { useState } from 'react';
 import { toggleAction } from '@/lib/actions';
 import type { JourneyView, Stage } from '@/lib/journey-view';
 
-const fmt = (iso: string | null) => (iso ? new Date(iso + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : '');
-
-function Lock() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
-  );
-}
-
 /**
- * Roadmap por etapas del Recorrido MAGNA: una por etapa, conectada a las secciones del Segundo cerebro.
- * Las etapas futuras se desbloquean en su fecha (el equipo las ve igual).
+ * Roadmap del método MAGNA por hitos (sin semanas ni fechas): cada fundadora avanza a su ritmo.
+ * Un hito se cumple cuando completa sus secciones del Segundo cerebro y sus tareas.
  */
 export function JourneyRoadmap({ view, base, staff }: { view: JourneyView; base: string; staff?: boolean }) {
-  const [sel, setSel] = useState(view.current ?? view.stages[0].k);
+  const [sel, setSel] = useState(view.current ?? view.stages[view.stages.length - 1].k);
   const [tasks, setTasks] = useState(() => Object.fromEntries(view.stages.flatMap((s) => s.tasks.map((t) => [t.id, t.done]))));
   const stage = view.stages.find((s) => s.k === sel)!;
   const current = view.stages.find((s) => s.k === view.current);
-  const locked = stage.state === 'locked' && !staff;
 
   const toggle = (id: string) => {
     const next = !tasks[id];
@@ -42,12 +31,13 @@ export function JourneyRoadmap({ view, base, staff }: { view: JourneyView; base:
       <div className="jr-top panel panel-pad">
         <div className="row between wrap" style={{ gap: 10 }}>
           <div>
-            <div className="muted small">Etapa actual</div>
-            <div className="jr-now">{current ? `${current.n} · ${current.title}` : 'Recorrido completado'}</div>
+            <div className="muted small">Hito actual</div>
+            <div className="jr-now">{current ? `${current.n} · ${current.title}` : 'Método MAGNA completo'}</div>
           </div>
-          <div className="jr-week">Semana {view.week} <span>de {view.totalWeeks}</span></div>
+          <div className="jr-week">Hito {view.index} <span>de {view.total}</span></div>
         </div>
         <div className="bar" style={{ marginTop: 12 }}><span style={{ width: `${view.pct}%` }} /></div>
+        <p className="muted small" style={{ marginTop: 10 }}>Avanzas a tu ritmo: no hay semanas ni nada que desbloquear. Las sesiones de MAGNA siguen en paralelo durante todo el año.</p>
         {view.docId && (
           <Link href={`${base}/biblioteca/${view.docId}`} className="small jr-doc">Leer tu estrategia completa →</Link>
         )}
@@ -57,9 +47,8 @@ export function JourneyRoadmap({ view, base, staff }: { view: JourneyView; base:
         {view.stages.map((s) => (
           <li key={s.k}>
             <button className={`jr-step ${s.state} ${s.k === sel ? 'on' : ''}`} onClick={() => setSel(s.k)} aria-current={s.k === sel ? 'step' : undefined}>
-              <span className="jr-dot">{s.state === 'locked' ? <Lock /> : s.state === 'done' ? '✓' : s.n}</span>
+              <span className="jr-dot">{s.state === 'done' ? '✓' : s.n}</span>
               <span className="jr-label">{s.title}</span>
-              <span className="jr-date">{fmt(s.start)}</span>
             </button>
           </li>
         ))}
@@ -67,24 +56,15 @@ export function JourneyRoadmap({ view, base, staff }: { view: JourneyView; base:
 
       <section className={`panel panel-pad jr-stage ${stage.state}`} key={stage.k}>
         <div className="jr-kicker">
-          Etapa {stage.n} · {fmt(stage.start)} – {fmt(stage.end)} · Lo guía {stage.lead}
+          Hito {stage.n} · Lo guía {stage.lead}
           <span className={`tag ${stage.state === 'done' ? 'ok' : stage.state === 'now' ? 'brand' : ''}`}>
-            {stage.state === 'done' ? 'Completada' : stage.state === 'now' ? 'En curso' : 'Bloqueada'}
+            {stage.state === 'done' ? 'Cumplido' : stage.state === 'now' ? 'En curso' : 'Próximo'}
           </span>
         </div>
         <h2>{stage.title}</h2>
 
-        {locked ? (
-          <div className="jr-locked">
-            <Lock />
-            <div>
-              <b>Se desbloquea el {fmt(stage.start)}</b>
-              <p className="muted small">{stage.about} Mientras tanto, enfocate en la etapa actual: cada paso prepara el siguiente.</p>
-            </div>
-          </div>
-        ) : (
+        {(
           <>
-            {staff && stage.state === 'locked' && <p className="muted small" style={{ marginTop: -4 }}>El cliente la ve bloqueada hasta el {fmt(stage.start)}.</p>}
             <p className="jr-objective">{stage.objective ?? stage.about}</p>
             <div className="bar" style={{ maxWidth: 280, margin: '4px 0 22px' }}><span style={{ width: `${stagePct(stage)}%` }} /></div>
 
@@ -103,21 +83,21 @@ export function JourneyRoadmap({ view, base, staff }: { view: JourneyView; base:
                 </ul>
                 {stage.hitos.length > 0 && (
                   <>
-                    <h3>Hitos de esta etapa</h3>
+                    <h3>Logros de este hito</h3>
                     <ul className="jr-list">
                       {stage.hitos.map((h) => (
                         <li key={h.id} className="jr-hito">
                           <span className="jr-flag" aria-hidden="true">◆</span>
                           <div>
                             <div>{h.title}</div>
-                            <div className="muted small">{fmt(h.date)}{h.detail ? ` · ${h.detail}` : ''}</div>
+                            {h.detail && <div className="muted small">{h.detail}</div>}
                           </div>
                         </li>
                       ))}
                     </ul>
                   </>
                 )}
-                {view.classesUrl && <a href={view.classesUrl} target="_blank" rel="noreferrer" className="btn sm" style={{ marginTop: 6 }}>Ver las clases en Skool</a>}
+                {view.classesUrl && <a href={view.classesUrl} target="_blank" rel="noreferrer" className="btn sm" style={{ marginTop: 6 }}>Ver las clases</a>}
               </div>
 
               <div>
@@ -129,12 +109,12 @@ export function JourneyRoadmap({ view, base, staff }: { view: JourneyView; base:
                       <div>
                         <div>{t.title}</div>
                         <div className="muted small">
-                          {t.owner === 'fractal' ? 'Lo hace el equipo' : 'Lo haces tú'}{t.due_date ? ` · ${fmt(t.due_date)}` : ''}{t.source === 'roadmap' ? ' · Personalizada' : ''}
+                          {t.owner === 'fractal' ? 'Lo hace el equipo' : 'Lo haces tú'}{t.source === 'roadmap' ? ' · Personalizada' : ''}
                         </div>
                       </div>
                     </li>
                   ))}
-                  {!stage.tasks.length && <li className="muted small">Sin tareas en esta etapa.</li>}
+                  {!stage.tasks.length && <li className="muted small">Sin tareas en este hito.</li>}
                 </ul>
               </div>
             </div>

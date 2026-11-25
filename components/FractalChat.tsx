@@ -8,17 +8,17 @@ type Source = { id: string; title: string };
 type Msg = { role: 'user' | 'assistant'; content: string; sources?: Source[] };
 
 const STAFF_SUGGESTIONS = [
-  '¿En qué etapa de MAGNA está y qué le toca ahora?',
+  '¿En qué hito del método está y qué le toca ahora?',
   'Revisa su oferta exponencial con el método MAGNA',
   'Dame 3 ideas de contenido magnífico para ella',
   '¿Qué le falta completar de su segundo cerebro?',
 ];
 
 const CLIENT_SUGGESTIONS = [
-  '¿En qué etapa estoy y qué me toca hacer esta semana?',
+  '¿En qué hito estoy y cuál es mi próximo paso?',
   'Ayúdame a definir mejor a mi clienta ideal',
   'Revisa mi oferta exponencial y dime qué mejorarías',
-  'Escríbeme 5 ideas de contenido magnífico para esta semana',
+  'Escríbeme 5 ideas de contenido magnífico con mi marca',
 ];
 
 marked.use({ renderer: { html: () => '' } }); // nunca renderizar HTML crudo del modelo

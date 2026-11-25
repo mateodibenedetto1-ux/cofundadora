@@ -3,6 +3,8 @@ import { getActions, getBrain, getCalls, getDocs, getMilestones, getOrgBySlug, g
 import { JourneyCard } from '@/components/Journey';
 import { computeRoadmap } from '@/lib/roadmap';
 import { RoadmapProgress } from '@/components/Roadmap';
+import { JourneyProgress } from '@/components/JourneyProgress';
+import { getJourneyView } from '@/lib/journey-view';
 import { fmtDate } from '@/lib/format';
 import { Cells } from '@/components/Cells';
 import { Icon } from '@/components/Icon';
@@ -12,9 +14,10 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const org = await getOrgBySlug(slug);
   const consulting = org.segment === 'consulting';
-  const [v, actions, calls, resources, docs, milestones, brain] = await Promise.all([
+  const [v, actions, calls, resources, docs, milestones, brain, journey] = await Promise.all([
     requireViewer(), getActions(org.id), getCalls(org.id), getResources(org.id), getDocs(org.id), getMilestones(org.id),
     consulting ? getBrain(org.id) : Promise.resolve({}),
+    consulting ? getJourneyView(org) : Promise.resolve(null),
   ]);
   const roadmap = computeRoadmap(milestones, org.start_date);
   const tops = actions.filter((a) => !a.parent_id);
@@ -44,19 +47,25 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
         <div style={{ marginTop: 32 }}><WorkflowCard orgId={org.id} steps={org.workflow ?? []} staff={false} clientName={org.contact_name || org.name} /></div>
       )}
 
-      {consulting && (
+      {consulting && !journey && (
         <div style={{ marginTop: 32 }}>
           <JourneyCard data={brain} href={`${base}/cerebro`} />
         </div>
       )}
 
-      {roadmap.totalWeeks > 0 && (
+      {journey && (
+        <Link href={`${base}/roadmap`} className="panel panel-pad" style={{ display: 'block', marginTop: 32, textDecoration: 'none' }}>
+          <JourneyProgress view={journey} />
+        </Link>
+      )}
+
+      {!journey && roadmap.totalWeeks > 0 && (
         <Link href={`${base}/roadmap`} className="panel panel-pad" style={{ display: 'block', marginTop: consulting ? 12 : 32, textDecoration: 'none' }}>
           <RoadmapProgress view={roadmap} compact />
         </Link>
       )}
 
-      <Link href={`${base}/accionables`} className="panel next-card" style={{ textDecoration: 'none', marginTop: roadmap.totalWeeks > 0 ? 12 : 32 }}>
+      <Link href={`${base}/accionables`} className="panel next-card" style={{ textDecoration: 'none', marginTop: journey || roadmap.totalWeeks > 0 ? 12 : 32 }}>
         <div className="stack" style={{ gap: 12 }}>
           <b style={{ fontWeight: 600 }}>Próximos accionables</b>
           <span className="muted">

@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <>
         <header className="ai-head">
           <h1>Tu roadmap</h1>
-          <p className="muted small">Tu recorrido etapa por etapa. Cada una se desbloquea en su fecha.</p>
+          <p className="muted small">Tu recorrido hito por hito, a tu ritmo.</p>
         </header>
         <JourneyRoadmap view={journey} base={`/c/${org.slug}`} />
       </>

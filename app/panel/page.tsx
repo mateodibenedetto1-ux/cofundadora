@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getAllMilestones, getAllOpenActions, getViewer, listClients } from '@/lib/data';
-import { computeRoadmap } from '@/lib/roadmap';
+import { journeySummaries } from '@/lib/journey-view';
 import { STATUS_LABEL } from '@/lib/format';
 import { Cells } from '@/components/Cells';
 
@@ -8,7 +8,8 @@ export const metadata = { title: 'Home' };
 
 export default async function PanelHome() {
   const [v, clients, open, milestones] = await Promise.all([getViewer(), listClients(), getAllOpenActions(), getAllMilestones()]);
-  const phaseOf = (c: (typeof clients)[number]) => computeRoadmap(milestones.filter((m) => m.org_id === c.id), c.start_date);
+  const journeys = await journeySummaries(clients.map((c) => c.id));
+  void milestones;
   const active = clients.filter((c) => c.status === 'activo' || c.status === 'onboarding');
   const onboarding = clients.filter((c) => c.status === 'onboarding');
   const teamOwned = open.filter((a) => a.owner === 'fractal');
@@ -40,10 +41,10 @@ export default async function PanelHome() {
                   <div className="grow">
                     <div style={{ fontWeight: 500 }}>{c.name}</div>
                     {(() => {
-                      const r = phaseOf(c);
-                      return r.totalWeeks ? (
+                      const r = journeys.get(c.id);
+                      return r ? (
                         <div className="small" style={{ color: 'var(--ink-2)', marginTop: 2 }}>
-                          {r.current?.title ?? r.next?.title} · semana {r.week} de {r.totalWeeks}
+                          Hito {r.index} de {r.total} · {r.title}
                         </div>
                       ) : null;
                     })()}

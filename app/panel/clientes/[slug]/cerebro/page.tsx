@@ -24,8 +24,8 @@ export default async function Page({ params, searchParams }: { params: Promise<{
           <b style={{ fontWeight: 500 }}>{started ? 'Recorrido MAGNA creado' : 'Crear el Recorrido MAGNA'}</b>
           <p className="muted small" style={{ marginTop: 3 }}>
             {started
-              ? 'Las 9 etapas de MAGNA son las fases de su roadmap, cada una con sus tareas: ver las clases, completar sus secciones y llevarlas a la sesión. Volver a crearlo reemplaza esas fases y tareas.'
-              : 'Genera las 9 etapas de MAGNA como fases desde la fecha de inicio, con sus tareas. Las de completar se marcan solas cuando la sección llega al 80 %.'}
+              ? 'Los 6 hitos del método MAGNA son su roadmap, cada uno con sus tareas: ver las clases del método y completar sus secciones. Sin semanas ni fechas: avanza a su ritmo. Volver a crearlo reemplaza esos hitos y tareas.'
+              : 'Genera los 6 hitos del método MAGNA con sus tareas, sin fechas. Las de completar se marcan solas cuando la sección llega al 80 %.'}
           </p>
         </div>
         <form action={startJourney.bind(null, org.id)}>
