@@ -5,7 +5,7 @@ import { DEMO } from '@/lib/env';
 import { FractalChat } from '@/components/FractalChat';
 import { AiKeyConnect } from '@/components/AiKeyConnect';
 
-export const metadata = { title: 'Visionaria' };
+export const metadata = { title: 'Cofundadora' };
 
 export default async function PortalIa({ params }: { params: Promise<{ slug: string }> }) {
   const org = await getOrgBySlug((await params).slug);
@@ -14,8 +14,8 @@ export default async function PortalIa({ params }: { params: Promise<{ slug: str
   return (
     <>
       <header className="ai-head">
-        <h1>Visionaria</h1>
-        <p className="muted small">Tu cofundadora 24/7, con tu Segundo cerebro y el método MAGNA.</p>
+        <h1>Tu Cofundadora</h1>
+        <p className="muted small">Tu socia estratégica 24/7: piensa contigo, te ubica en tu fase y te dice qué priorizar hoy.</p>
       </header>
       <div className="stack" style={{ gap: 12 }}>
         <AiKeyConnect orgId={org.id} connected={key.connected} hint={key.hint} />
@@ -23,7 +23,7 @@ export default async function PortalIa({ params }: { params: Promise<{ slug: str
           <FractalChat
             fixedClient={org.slug}
             mode="client"
-            intro="Pregúntame lo que necesites sobre tu empresa. Mientras más completo esté tu Segundo cerebro, mejores serán mis respuestas."
+            intro="Cuéntame en qué estás hoy. Pensemos juntas qué priorizar y cuál es tu próximo paso. Mientras más completo esté tu Segundo cerebro, mejor te conozco."
           />
         )}
       </div>

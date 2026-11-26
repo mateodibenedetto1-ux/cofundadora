@@ -20,7 +20,9 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
     consulting ? getJourneyView(org) : Promise.resolve(null),
   ]);
   const roadmap = computeRoadmap(milestones, org.start_date);
-  const tops = actions.filter((a) => !a.parent_id);
+  // En MAGNA los accionables son los pasos del roadmap: se muestran los de la fase actual
+  const phaseSteps = journey ? journey.stages.find((st) => st.k === journey.current)?.tasks ?? [] : null;
+  const tops = phaseSteps ?? actions.filter((a) => !a.parent_id);
   const pending = tops.filter((a) => !a.done);
   const last = calls[0];
   const name = org.contact_name || (v.isStaff ? org.name : v.name);
@@ -39,7 +41,7 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
         <p>
           {last
             ? `Tu última sesión fue el ${fmtDate(last.held_at)}. Aquí tienes lo que quedó pendiente y todo lo que te compartimos.`
-            : 'Aquí está tu recorrido en MAGNA, lo que te toca hacer y todo lo que te compartimos.'}
+            : 'Aquí está tu recorrido en MAGNA y tu próximo paso.'}
         </p>
       </section>
 
@@ -65,13 +67,13 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
         </Link>
       )}
 
-      <Link href={`${base}/accionables`} className="panel next-card" style={{ textDecoration: 'none', marginTop: journey || roadmap.totalWeeks > 0 ? 12 : 32 }}>
+      <Link href={journey ? `${base}/roadmap` : `${base}/accionables`} className="panel next-card" style={{ textDecoration: 'none', marginTop: journey || roadmap.totalWeeks > 0 ? 12 : 32 }}>
         <div className="stack" style={{ gap: 12 }}>
-          <b style={{ fontWeight: 600 }}>Próximos accionables</b>
+          <b style={{ fontWeight: 600 }}>{journey ? 'Próximos pasos de tu fase' : 'Próximos accionables'}</b>
           <span className="muted">
             {pending.length
-              ? `Te ${pending.length === 1 ? 'queda 1 accionable pendiente' : `quedan ${pending.length} accionables pendientes`}.`
-              : 'Tienes todo al día.'}
+              ? `Te ${pending.length === 1 ? 'queda 1 paso' : `quedan ${pending.length} pasos`}${journey ? ' para terminar esta fase' : ' pendientes'}.`
+              : journey ? 'Terminaste los pasos de esta fase.' : 'Tienes todo al día.'}
           </span>
           <Cells done={tops.length - pending.length} total={tops.length} size="lg" />
         </div>
@@ -90,17 +92,26 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
       )}
 
       <div className="links-grid" style={{ marginTop: 28 }}>
-        <Link href={`${base}/recursos`} className="panel link-card">
-          <Icon name="doc" />
-          <b>Recursos y SOPs</b>
-          <span className="muted small">{resources.length} documentos, hojas y carpetas en un solo lugar.</span>
-        </Link>
+        {consulting && (
+          <>
+            <Link href={`${base}/ia`} className="panel link-card">
+              <Icon name="spark" />
+              <b>Tu Cofundadora</b>
+              <span className="muted small">Piensa contigo qué priorizar hoy y cuál es tu próximo paso.</span>
+            </Link>
+            <Link href={`${base}/visionaria`} className="panel link-card">
+              <Icon name="play" />
+              <b>Visionaria</b>
+              <span className="muted small">Crea reels, carruseles, emails y páginas de venta con tu voz.</span>
+            </Link>
+          </>
+        )}
         <Link href={`${base}/biblioteca`} className="panel link-card">
           <Icon name="book" />
           <b>Biblioteca</b>
-          <span className="muted small">{docs.length} documentos de estrategia y de tus sesiones.</span>
+          <span className="muted small">{docs.length + resources.length} documentos, recursos y clases de MAGNA.</span>
         </Link>
-        {links.map((l) => (
+        {!consulting && links.map((l) => (
           <a key={l.title} href={l.href} target="_blank" rel="noopener noreferrer" className="panel link-card">
             <Icon name={l.icon} />
             <b>{l.title}</b>

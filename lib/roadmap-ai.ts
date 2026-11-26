@@ -108,19 +108,19 @@ async function fractalStandard(orgId: string) {
 const SYSTEM = `Eres la estratega de MAGNA, la mentoría de Val Lollett (Seres Magnéticos) para expertas que quieren convertirse en fundadoras de empresas escalables.
 Tu trabajo es crear el roadmap personalizado de una fundadora que completó su Segundo cerebro.
 
-El roadmap sigue SIEMPRE los hitos del método MAGNA, en este orden:
+El roadmap sigue SIEMPRE las 5 fases del método MAGNA (de experta a fundadora), en este orden:
 {ETAPAS}
 
-El roadmap NO tiene semanas ni fechas: es una secuencia de hitos que cada fundadora cumple a su ritmo (puede hacerlo en días o en meses). No incluye las clases y sesiones de MAGNA del año (Mujer Magna, Marca memorable, Modelo maestro), que corren en paralelo. El método termina cuando tiene su marca clara, su metodología, su oferta high ticket (exponencial) y su low ticket listas para lanzar; el lanzamiento se diseña a su medida.
+El roadmap NO tiene semanas ni fechas: es una secuencia de fases que cada fundadora cumple a su ritmo (puede hacerlo en días o en meses). No incluye las clases y sesiones de MAGNA del año (Mujer Magna, Marca memorable, Modelo maestro), que corren en paralelo. El método termina cuando tiene su marca clara, su metodología, su oferta high ticket (exponencial) y su low ticket listas para lanzar; el lanzamiento se diseña a su medida.
 
 Cómo hacerlo:
-- Básate en TODO lo que escribió en cada sección de su Segundo cerebro (no solo en sus objetivos). Cada hito trabaja sobre sus secciones: en "Claridad de marca", su punto de partida, identidad, clienta, marca, mensaje y voz; y así.
+- Básate en TODO lo que escribió en cada sección de su Segundo cerebro (no solo en sus objetivos). Cada fase trabaja sobre sus secciones: en "La Marca Definida", su punto de partida, identidad, clienta, marca, mensaje y voz; y así.
 - Usa el método MAGNA (abajo) como estándar del tipo de hitos, el ritmo y el orden. Adáptalo a su negocio.
-- etapas: una por cada hito (los 6), con "objetivo" (1 o 2 frases específicas para su negocio, de tú: qué va a lograr en esta etapa con lo que ya escribió) y "entregable" (lo concreto que queda hecho al terminarla).
-- hitos: 1 o 2 logros por hito del método. Logros verificables del negocio, no "ver clases". Ej: "Oferta exponencial validada en 5 conversaciones".
-- tareas: 2 a 4 por etapa, accionables, título con verbo y menos de 90 caracteres, con owner ("cliente" para ella o "fractal" para el equipo de Seres Magnéticos), por_que (una frase de negocio), area y prioridad. No repitas las tareas que ya trae cada hito: ver las clases del método y completar las secciones del Segundo cerebro. Nunca pongas plazos en semanas.
+- etapas: una por cada fase (las 5), con "objetivo" (1 o 2 frases específicas para su negocio, de tú: qué va a lograr en esta etapa con lo que ya escribió) y "entregable" (lo concreto que queda hecho al terminarla).
+- hitos: 1 o 2 logros por fase del método. Logros verificables del negocio, no "ver clases". Ej: "Oferta exponencial validada en 5 conversaciones".
+- tareas: 2 a 4 por etapa, accionables, título con verbo y menos de 90 caracteres, con owner ("cliente" para ella o "fractal" para el equipo de Seres Magnéticos), por_que (una frase de negocio), area y prioridad. No repitas los pasos que ya trae cada fase del método (ver las clases, completar las hojas de trabajo). Nunca pongas plazos en semanas.
 - Si algo del Segundo cerebro está vacío o flojo, la tarea de esa etapa es definirlo o mejorarlo.
-- resumen_md: documento para ella, en español cálido y de tú, con: "## Dónde estás hoy" (diagnóstico corto con sus datos), "## Tu norte" (objetivo y métricas), "## Tu recorrido, hito por hito" (una línea por hito con lo que logra), "## Lo que no vamos a hacer todavía" y "## Cómo medimos el avance". Conciso y específico.
+- resumen_md: documento para ella, en español cálido y de tú, con: "## Dónde estás hoy" (diagnóstico corto con sus datos), "## Tu norte" (objetivo y métricas), "## Tu recorrido, fase por fase" (una línea por fase con lo que logra), "## Lo que no vamos a hacer todavía" y "## Cómo medimos el avance". Conciso y específico.
 - No inventes datos ni prometas cifras. Responde únicamente llamando a la herramienta guardar_roadmap.`;
 
 /** Genera el roadmap personalizado (hitos + tareas + documento) para un cliente de consultoría. */
@@ -132,7 +132,7 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
     // Primero la API key de la fundadora; si no conectó una, la del equipo
     const { getOrgAiKey } = await import('./aikeys');
     const key = (await getOrgAiKey(orgId)) ?? process.env.ANTHROPIC_API_KEY;
-    if (!key) throw new Error('Para crear el roadmap, la fundadora tiene que conectar su API key en Visionaria.');
+    if (!key) throw new Error('Para crear el roadmap, la fundadora tiene que conectar su API key en su Cofundadora.');
     const [{ data: org }, { data: brain }] = await Promise.all([
       sb.from('organizations').select('id, name, start_date, responsables').eq('id', orgId).single(),
       sb.from('client_brain').select('data').eq('org_id', orgId).single(),
@@ -225,7 +225,7 @@ export async function generateRoadmap(orgId: string): Promise<{ ok: boolean; err
     const message = /credit balance/i.test(raw)
       ? 'La cuenta de Anthropic no tiene saldo. Carga créditos en console.anthropic.com → Billing y vuelve a intentar.'
       : /invalid x-api-key|authentication/i.test(raw)
-        ? 'La API key de Anthropic no es válida. Conecta una nueva en Visionaria.'
+        ? 'La API key de Anthropic no es válida. Conecta una nueva en tu Cofundadora.'
         : raw;
     console.error('No se pudo generar el roadmap', message);
     await setStatus('error', { roadmap_error: message.slice(0, 400) });

@@ -11,7 +11,7 @@ export const maxDuration = 120;
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 /**
- * Chat de Visionaria.
+ * Chat de la Cofundadora.
  * - Equipo (panel): usa la key del equipo y cita los documentos de la bóveda.
  * - Cliente de consultoría (portal, mode "client"): usa la API key propia del cliente y no expone la bóveda.
  */
@@ -35,9 +35,9 @@ export async function POST(req: Request) {
   let key: string | null | undefined;
   if (mode === 'client') {
     if (!v.isStaff && !v.clientOrgIds.includes(client!.id)) return new Response('No autorizado', { status: 403 });
-    if (client!.segment !== 'consulting') return new Response('Visionaria es parte de MAGNA.', { status: 403 });
+    if (client!.segment !== 'consulting') return new Response('La Cofundadora es parte de MAGNA.', { status: 403 });
     key = await getOrgAiKey(client!.id);
-    if (!key) return new Response('Conecta tu API key de Anthropic para usar Visionaria.', { status: 402 });
+    if (!key) return new Response('Conecta tu API key de Anthropic para usar tu Cofundadora.', { status: 402 });
   } else {
     key = process.env.ANTHROPIC_API_KEY;
     if (!key) return new Response('Falta configurar ANTHROPIC_API_KEY en Vercel.', { status: 503 });

@@ -663,7 +663,7 @@ a.panel:hover, .kpi:hover { border-color: var(--line); transform: translateY(-1p
 .jr-week { font-size: 26px; font-weight: 300; letter-spacing: -.02em; }
 .jr-week span { font-size: 15px; color: var(--muted); }
 .jr-doc { text-decoration: none; display: inline-block; margin-top: 12px; color: var(--brand); }
-.jr-steps { list-style: none; margin: 0; padding: 4px 2px 6px; display: grid; grid-template-columns: repeat(9, minmax(92px, 1fr)); gap: 0; overflow-x: auto; scrollbar-width: thin; }
+.jr-steps { list-style: none; margin: 0; padding: 4px 2px 6px; display: grid; grid-template-columns: repeat(5, minmax(110px, 1fr)); gap: 0; overflow-x: auto; scrollbar-width: thin; }
 .jr-steps li { position: relative; }
 .jr-steps li:not(:last-child)::after { content: ''; position: absolute; top: 19px; left: calc(50% + 20px); right: calc(-50% + 20px); height: 2px; background: var(--line); }
 .jr-step { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding: 2px 4px 8px; text-align: center; border-radius: var(--r-sm); }
@@ -699,7 +699,7 @@ a.panel:hover, .kpi:hover { border-color: var(--line); transform: translateY(-1p
 .jr-task.done > div > div:first-child { text-decoration: line-through; color: var(--muted); }
 @media (max-width: 760px) {
   .jr-grid { grid-template-columns: 1fr; gap: 6px; }
-  .jr-steps { grid-template-columns: repeat(9, 84px); }
+  .jr-steps { grid-template-columns: repeat(5, 104px); }
 }
 
 .theme-toggle { display: inline-flex; align-items: center; gap: 6px; }
@@ -1125,3 +1125,29 @@ button[aria-busy='true'] { cursor: progress; }
   50% { transform: rotate(90deg) scale(1.05); opacity: 1; }
   100% { transform: rotate(180deg) scale(.85); opacity: .55; }
 }
+
+.jr-outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.jr-outcomes > div { padding: 14px 16px; border-radius: var(--r-sm); background: var(--raised); border: 1px solid var(--line-soft); }
+.jr-outcomes h3, .jr-always h3 { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 6px; }
+.jr-outcomes p { margin: 0; line-height: 1.55; }
+.jr-done { padding: 10px 14px; border-left: 2px solid var(--brand); background: var(--brand-soft); border-radius: 0 var(--r-sm) var(--r-sm) 0; margin: 0; }
+.jr-done b { font-weight: 500; }
+.jr-mats li { padding-left: 16px; position: relative; line-height: 1.45; }
+.jr-mats li::before { content: '✦'; position: absolute; left: 0; color: var(--brand); font-size: 10px; top: 3px; }
+.jr-always { margin-top: 14px; }
+.jr-always p { margin: 6px 0 0; line-height: 1.55; color: var(--ink-2); }
+.jr-always b { color: var(--ink); font-weight: 500; }
+@media (max-width: 700px) { .jr-outcomes { grid-template-columns: 1fr; } }
+
+.mic { width: 42px; padding: 0; display: grid; place-items: center; }
+.mic.on { color: var(--brand); border-color: var(--brand); animation: mic-pulse 1.2s ease-in-out infinite; }
+@keyframes mic-pulse { 50% { box-shadow: 0 0 0 4px var(--brand-soft); } }
+
+/* ---------- Visionaria ---------- */
+.vs { display: flex; flex-direction: column; gap: 16px; }
+.vs-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.vs-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.vs-opts .chip { text-align: left; }
+.vs-out .ai-md { line-height: 1.65; }
+.vs-edit { width: 100%; font-family: inherit; line-height: 1.6; }

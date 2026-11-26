@@ -4,6 +4,7 @@ import { fillBrainSample, startJourney } from '@/lib/actions';
 import { SubmitButton } from '@/components/SubmitButton';
 import { DEMO } from '@/lib/env';
 import { BrainEditor } from '@/components/BrainEditor';
+import { BriefUpload } from '@/components/BriefUpload';
 
 export default async function Page({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ s?: string; prueba?: string }> }) {
   const org = await getOrgBySlug((await params).slug);
@@ -24,14 +25,15 @@ export default async function Page({ params, searchParams }: { params: Promise<{
           <b style={{ fontWeight: 500 }}>{started ? 'Recorrido MAGNA creado' : 'Crear el Recorrido MAGNA'}</b>
           <p className="muted small" style={{ marginTop: 3 }}>
             {started
-              ? 'Los 6 hitos del método MAGNA son su roadmap, cada uno con sus tareas: ver las clases del método y completar sus secciones. Sin semanas ni fechas: avanza a su ritmo. Volver a crearlo reemplaza esos hitos y tareas.'
-              : 'Genera los 6 hitos del método MAGNA con sus tareas, sin fechas. Las de completar se marcan solas cuando la sección llega al 80 %.'}
+              ? 'Las 5 fases del método MAGNA son su roadmap, cada una con sus pasos como checklist. Sin semanas ni fechas: avanza a su ritmo. Volver a crearlo reemplaza esas fases y pasos.'
+              : 'Genera las 5 fases del método MAGNA con sus pasos como checklist, sin fechas.'}
           </p>
         </div>
         <form action={startJourney.bind(null, org.id)}>
           <button className={`btn ${started ? '' : 'primary'}`}>{started ? 'Volver a crear' : 'Crear recorrido'}</button>
         </form>
       </div>
+      <BriefUpload orgId={org.id} current={(data as Record<string, string>)._brief_name ?? null} />
       <BrainEditor key={Object.keys(data).length} orgId={org.id} name={org.name} initial={data} demo={DEMO} roadmap={meta} initialSection={sp.s} staff roadmapHref={`/panel/clientes/${org.slug}/roadmap`} />
     </div>
   );

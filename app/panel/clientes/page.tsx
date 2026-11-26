@@ -18,7 +18,7 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
       <div className="page-head">
         <div>
           <h1>Fundadoras</h1>
-          <p>Cada fundadora de MAGNA tiene su propio portal: su segundo cerebro, Visionaria, su roadmap y todo lo que le compartes.</p>
+          <p>Cada fundadora de MAGNA tiene su propio portal: su Segundo cerebro, su Cofundadora, Visionaria, su roadmap y todo lo que le compartes.</p>
         </div>
         <a href="#nueva" className="btn">Nueva fundadora</a>
         <a href="#varias" className="btn ghost">Cargar varias</a>

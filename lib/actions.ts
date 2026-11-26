@@ -71,6 +71,13 @@ export async function createClientAccount(form: FormData) {
     start_date: str(form, 'start_date'),
   });
   if (error) redirect(`/panel/clientes?error=${encodeURIComponent(error.message)}`);
+  // Cada fundadora nueva arranca con su Recorrido MAGNA (las 5 fases con sus pasos)
+  const admin = supabaseAdmin();
+  const { data: created } = await admin.from('organizations').select('id').eq('slug', slug).single();
+  if (created) {
+    const { buildJourney } = await import('./journey');
+    await buildJourney(admin, created.id, str(form, 'start_date') ?? new Date().toISOString().slice(0, 10), null).catch(() => {});
+  }
   refresh();
   redirect(`/panel/clientes/${slug}`);
 }
@@ -717,4 +724,33 @@ export async function disconnectDropboxAction() {
   const { disconnectDropbox } = await import('./kb');
   await disconnectDropbox();
   refresh();
+}
+
+/** Guarda en la Biblioteca de la fundadora una pieza creada con Visionaria. */
+export async function saveGeneratedPiece(orgId: string, title: string, body: string) {
+  if (DEMO) return { ok: true };
+  const v = await requireViewer();
+  if (!v.isStaff && !v.clientOrgIds.includes(orgId)) return { ok: false };
+  const { error } = await supabaseAdmin().from('documents').insert({ org_id: orgId, kind: 'nota', title: title.slice(0, 160), body_md: body, visible_to_client: true });
+  refresh();
+  return { ok: !error };
+}
+
+/** Sube el Brand Brief de la fundadora (PDF o Word): su texto queda en el Segundo cerebro para la Cofundadora y Visionaria. */
+export async function uploadBrandBrief(orgId: string, _prev: unknown, form: FormData) {
+  if (DEMO) return { ok: true, msg: 'Modo demo' };
+  const v = await requireViewer();
+  if (!v.isStaff && !v.clientOrgIds.includes(orgId)) return { ok: false, msg: 'No autorizado' };
+  const f = form.get('file');
+  if (!(f instanceof File) || !f.size) return { ok: false, msg: 'Elige un archivo' };
+  const { extractText, isReadable } = await import('./kb');
+  if (!isReadable(f.name)) return { ok: false, msg: 'Sube un PDF, Word o TXT' };
+  try {
+    const text = (await extractText(await f.arrayBuffer(), f.name)).trim();
+    if (text.length < 40) return { ok: false, msg: 'No pude leer texto en ese archivo. Si es un PDF escaneado, súbelo en Word.' };
+    await saveBrain(orgId, { _brief: text.slice(0, 60000), _brief_name: f.name, _brief_at: new Date().toISOString() });
+    return { ok: true, msg: `Listo: tu Cofundadora y Visionaria ya conocen tu Brand Brief (${f.name}).` };
+  } catch (e) {
+    return { ok: false, msg: e instanceof Error ? e.message : 'No se pudo leer el archivo' };
+  }
 }

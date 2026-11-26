@@ -6,7 +6,7 @@ import { connectAiKey, disconnectAiKey } from '@/lib/actions';
 const STEPS: { title: string; body: React.ReactNode }[] = [
   {
     title: 'Crea tu cuenta en Anthropic',
-    body: <>Entra a <a href="https://console.anthropic.com" target="_blank" rel="noreferrer">console.anthropic.com</a> y regístrate con tu email (o inicia sesión si ya tienes cuenta). Anthropic es la empresa detrás de Claude, el modelo con el que funciona Visionaria.</>,
+    body: <>Entra a <a href="https://console.anthropic.com" target="_blank" rel="noreferrer">console.anthropic.com</a> y regístrate con tu email (o inicia sesión si ya tienes cuenta). Anthropic es la empresa detrás de Claude, el modelo con el que funcionan tu Cofundadora y Visionaria.</>,
   },
   {
     title: 'Carga créditos',
@@ -14,7 +14,7 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
   },
   {
     title: 'Crea una API key',
-    body: <>Ve a <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">Settings → API Keys</a>, toca <b>Create Key</b> y ponle de nombre &ldquo;Visionaria&rdquo;.</>,
+    body: <>Ve a <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">Settings → API Keys</a>, toca <b>Create Key</b> y ponle de nombre &ldquo;Cofundadora&rdquo;.</>,
   },
   {
     title: 'Cópiala y pégala aquí abajo',
@@ -36,7 +36,7 @@ export function AiKeyConnect({ orgId, connected, hint, compact, preview }: { org
         <button
           className="btn ghost sm"
           disabled={pending}
-          onClick={() => { if (confirm('¿Desconectar la API key? Visionaria dejará de funcionar hasta que conectes otra.')) start(() => disconnectAiKey(orgId)); }}
+          onClick={() => { if (confirm('¿Desconectar la API key? Tu Cofundadora y Visionaria dejarán de funcionar hasta que conectes otra.')) start(() => disconnectAiKey(orgId)); }}
         >
           {pending ? 'Desconectando…' : 'Desconectar'}
         </button>
@@ -58,8 +58,8 @@ export function AiKeyConnect({ orgId, connected, hint, compact, preview }: { org
     <div className="panel panel-pad ai-connect">
       <div className="row between">
         <div>
-          <h2>Conecta a Visionaria</h2>
-          <p className="muted">Visionaria funciona con tu propia cuenta de Anthropic: tú controlas el gasto y tus conversaciones quedan a tu nombre. Se configura una sola vez y toma unos 5 minutos.</p>
+          <h2>Conecta tu IA</h2>
+          <p className="muted">Tu Cofundadora y Visionaria funcionan con tu propia cuenta de Anthropic: tú controlas el gasto y tus conversaciones quedan a tu nombre. Se configura una sola vez y toma unos 5 minutos.</p>
         </div>
         {compact && <button className="btn sm" onClick={() => setOpen(!open)}>{open ? 'Ocultar' : 'Ver cómo'}</button>}
       </div>
@@ -93,7 +93,7 @@ export function AiKeyConnect({ orgId, connected, hint, compact, preview }: { org
           </form>
           {error && <p className="small" style={{ color: 'var(--warn)', marginTop: 8 }}>{error}</p>}
           <p className="muted small" style={{ marginTop: 10 }}>
-            Tu key se guarda cifrada y solo se usa para tus conversaciones con Visionaria. Nadie del equipo puede verla. Puedes desconectarla aquí o revocarla desde Anthropic cuando quieras.
+            Tu key se guarda cifrada y solo se usa para tu Cofundadora y Visionaria. Nadie del equipo puede verla. Puedes desconectarla aquí o revocarla desde Anthropic cuando quieras.
           </p>
           </>)}
         </>

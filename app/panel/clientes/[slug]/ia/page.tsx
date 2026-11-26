@@ -5,7 +5,7 @@ import { DEMO } from '@/lib/env';
 import { FractalChat } from '@/components/FractalChat';
 import { AiKeyConnect } from '@/components/AiKeyConnect';
 
-export const metadata = { title: 'Visionaria' };
+export const metadata = { title: 'Cofundadora' };
 
 export default async function ClientIa({ params }: { params: Promise<{ slug: string }> }) {
   const org = await getOrgBySlug((await params).slug);
@@ -17,7 +17,7 @@ export default async function ClientIa({ params }: { params: Promise<{ slug: str
     return (
       <div className="stack" style={{ gap: 12 }}>
         <p className="muted small">
-          {org.name} todavía no conectó su API key. Esto es lo que ve en su portal: cuando la conecte, Visionaria se activa acá y allá.
+          {org.name} todavía no conectó su API key. Esto es lo que ve en su portal: cuando la conecte, su Cofundadora y Visionaria se activan acá y allá.
         </p>
         <AiKeyConnect orgId={org.id} connected={false} hint={null} preview />
       </div>
@@ -30,7 +30,7 @@ export default async function ClientIa({ params }: { params: Promise<{ slug: str
       <FractalChat
         fixedClient={org.slug}
         mode="client"
-        intro={`Respondo con el Segundo cerebro de ${org.name} y el método MAGNA. Lo que hables acá usa su API key.`}
+        intro={`Soy la Cofundadora de ${org.name}: respondo como a ella, con su Segundo cerebro y el método MAGNA. Lo que hables acá usa su API key.`}
       />
     </div>
   );

@@ -7,5 +7,5 @@ export const DOC_KIND: Record<Doc['kind'], string> = {
   reporte: 'Reportes semanales',
   objetivos: 'Objetivos',
   resumen: 'Resúmenes de llamadas',
-  nota: 'Notas',
+  nota: 'Contenido creado con Visionaria',
 };

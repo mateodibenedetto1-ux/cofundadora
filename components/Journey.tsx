@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { MODULES, brainPct, modulePct, type BrainData } from '@/lib/brain';
 
-/** Recorrido MAGNA: el avance de la fundadora hito por hito. */
+/** Recorrido MAGNA: el avance de la fundadora fase por fase. */
 export function JourneyCard({ data, href }: { data: BrainData; href: string }) {
   const total = brainPct(data);
   const current = MODULES.find((m) => modulePct(data, m) < 80) ?? MODULES[MODULES.length - 1];
   const done = MODULES.filter((m) => modulePct(data, m) >= 80).length;
   const msg =
     total === 0 ? 'Tu recorrido empieza por el hito 01, Claridad de marca: cuéntanos dónde está tu negocio hoy y la fundadora que quieres ser.'
-    : done === MODULES.length ? 'Completaste los hitos del método. Tu Segundo cerebro ya guía cada paso.'
-    : `Vas por el hito ${current.n}: ${current.title}. ${current.about} Cada sección que completas le da más contexto a tu estrategia y a Visionaria.`;
+    : done === MODULES.length ? 'Completaste las fases del método. Tu Segundo cerebro ya guía cada paso.'
+    : `Vas por la fase ${current.n}: ${current.title}. ${current.about} Cada sección que completas le da más contexto a tu estrategia y a Visionaria.`;
   return (
     <Link href={href} className="panel journey">
       <div className="journey-head">

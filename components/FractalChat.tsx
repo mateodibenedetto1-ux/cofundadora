@@ -8,17 +8,17 @@ type Source = { id: string; title: string };
 type Msg = { role: 'user' | 'assistant'; content: string; sources?: Source[] };
 
 const STAFF_SUGGESTIONS = [
-  '¿En qué hito del método está y qué le toca ahora?',
-  'Revisa su oferta exponencial con el método MAGNA',
-  'Dame 3 ideas de contenido magnífico para ella',
-  '¿Qué le falta completar de su segundo cerebro?',
+  '¿En qué fase del método está y qué le toca ahora?',
+  'Revisa su Oferta Exponencial con el método MAGNA',
+  '¿Qué le falta completar de su Segundo cerebro?',
+  '¿Qué debería priorizar esta semana?',
 ];
 
 const CLIENT_SUGGESTIONS = [
-  '¿En qué hito estoy y cuál es mi próximo paso?',
-  'Ayúdame a definir mejor a mi clienta ideal',
-  'Revisa mi oferta exponencial y dime qué mejorarías',
-  'Escríbeme 5 ideas de contenido magnífico con mi marca',
+  '¿En qué fase estoy y cuál es mi próximo paso?',
+  'Tengo muchas ideas a la vez, ayúdame a elegir una para hoy',
+  'Ayúdame a pensar a mi clienta premium',
+  '¿Qué contenido me conviene publicar esta semana?',
 ];
 
 marked.use({ renderer: { html: () => '' } }); // nunca renderizar HTML crudo del modelo
@@ -161,13 +161,48 @@ export function FractalChat({ clients = [], initialClient, fixedClient, mode = '
           ref={box}
           className="textarea"
           rows={2}
-          placeholder="Pregunta algo o pide un entregable…"
+          placeholder={mode === 'client' ? 'Cuéntale a tu Cofundadora en qué estás…' : 'Pregunta algo o pide un entregable…'}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(input); } }}
         />
+        <VoiceButton onText={(t) => setInput((v) => (v ? `${v} ${t}` : t))} disabled={busy} />
         <button className="btn primary" disabled={busy || !input.trim()}>{busy ? 'Pensando…' : 'Enviar'}</button>
       </form>
     </div>
+  );
+}
+
+/** Dictado por voz con el reconocimiento del navegador (Chrome, Safari y Edge). */
+function VoiceButton({ onText, disabled }: { onText: (t: string) => void; disabled?: boolean }) {
+  const [on, setOn] = useState(false);
+  const [ok, setOk] = useState(false);
+  const rec = useRef<{ stop: () => void } | null>(null);
+  useEffect(() => {
+    const w = window as unknown as Record<string, unknown>;
+    setOk(Boolean(w.SpeechRecognition || w.webkitSpeechRecognition));
+  }, []);
+  if (!ok) return null;
+  const toggle = () => {
+    if (on) { rec.current?.stop(); return; }
+    const w = window as unknown as Record<string, new () => {
+      lang: string; continuous: boolean; interimResults: boolean;
+      onresult: (e: { resultIndex: number; results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void;
+      onend: () => void; onerror: () => void; start: () => void; stop: () => void;
+    }>;
+    const R = w.SpeechRecognition || w.webkitSpeechRecognition;
+    const r = new R();
+    r.lang = 'es-419'; r.continuous = true; r.interimResults = false;
+    r.onresult = (e) => {
+      for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) onText(e.results[i][0].transcript.trim());
+    };
+    r.onend = () => setOn(false);
+    r.onerror = () => setOn(false);
+    rec.current = r; r.start(); setOn(true);
+  };
+  return (
+    <button type="button" className={`btn ghost mic ${on ? 'on' : ''}`} onClick={toggle} disabled={disabled} aria-label={on ? 'Detener dictado' : 'Hablar'} title={on ? 'Detener dictado' : 'Hablar'}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+    </button>
   );
 }

@@ -29,16 +29,106 @@ export interface Module {
   about: string;
   lead: string;
   weeks: number;
+  /** Lo que se lleva al terminar la fase */
+  practical?: string;
+  emotional?: string;
+  materials?: string[];
+  steps?: string[];
+  /** Cuándo se da por terminada */
+  done?: string;
+  /** Piezas de contenido por semana en esta fase */
+  content?: string;
 }
 
 export const MODULES: Module[] = [
-  { k: 'marca', n: '01', title: 'Claridad de marca', about: 'Tu Brand Brief: quién eres como fundadora, a quién le hablas y qué dice tu marca.', lead: 'Val', weeks: 0 },
-  { k: 'contenido', n: '02', title: 'Contenido de posicionamiento', about: 'Empezar a publicar con los frameworks de contenido magnífico.', lead: 'Val', weeks: 0 },
-  { k: 'metodologia', n: '03', title: 'Tu metodología', about: 'Tu método propio, paso a paso.', lead: 'Val', weeks: 0 },
-  { k: 'exponencial', n: '04', title: 'Oferta high ticket', about: 'Tu oferta exponencial: la que crece sin multiplicar tus horas.', lead: 'Val', weeks: 0 },
-  { k: 'lowticket', n: '05', title: 'Oferta low ticket', about: 'Una parte de tu oferta high ticket que funciona como puerta de entrada.', lead: 'Val', weeks: 0 },
-  { k: 'lanzamiento', n: '06', title: 'Lanzamiento', about: 'Tu lanzamiento, diseñado a tu medida y a tu energía.', lead: 'Val', weeks: 0 },
+  {
+    k: 'marca', n: '1', title: 'La Marca Definida', lead: 'Val', weeks: 0,
+    about: 'Defines con claridad qué viene a decir tu marca al mundo y a quién quieres servir.',
+    practical: 'Sales con tu Brand Brief, tu Big Idea, tus 5 creencias y una bio que posiciona.',
+    emotional: 'Dejas de sentirte dispersa y empiezas a sentir dirección, enfoque y la certeza de hacia dónde vas.',
+    materials: ['Clase y hoja de trabajo de Tu Marca Memorable', 'Brand Brief Framework', 'Clase de Posicionamiento de Alto Calibre (ejercicio 1)'],
+    steps: [
+      'Ve la clase Tu Marca Memorable y escribe tu Big Idea en una frase',
+      'Completa el Brand Brief: primero tu clienta, después tu marca',
+      'Ve la clase Posicionamiento de Alto Calibre y completa el ejercicio 1: tu oportunidad de diferenciación',
+      'Escribe tus 5 creencias',
+      'Actualiza tu bio',
+      'Publica tu primera pieza de contenido con Visionaria',
+    ],
+    done: 'Puedes explicar tu marca en una frase.',
+    content: '3 piezas por semana',
+  },
+  {
+    k: 'metodologia', n: '2', title: 'La Autora con Propiedad Intelectual', lead: 'Val', weeks: 0,
+    about: 'Conviertes tu forma de transformar en un método propio, con nombre, y te posicionas en una categoría donde no compites por precio.',
+    practical: 'Sales con tu metodología de 3 a 5 fases, tu categoría propia, tu mensaje de posicionamiento y tu historia de origen grabada.',
+    emotional: 'Dejas de dudar de tu valor como experta y te reconoces como dueña de un conocimiento que vale y que puede trascenderte.',
+    materials: ['Clase y hoja de trabajo de Tu Metodología', 'Hoja de trabajo de Posicionamiento de Alto Calibre (ejercicios 2 y 3)', 'Plantilla de guion de historia'],
+    steps: [
+      'Elige una de las 3 formas de crear tu método',
+      'Define de 3 a 5 fases, con una herramienta para cada una',
+      'Ponle nombre a tu método',
+      'Completa los ejercicios 2 y 3 de Posicionamiento de Alto Calibre: tu categoría propia y tu mensaje de posicionamiento',
+      'Graba tu historia de origen con la plantilla de guion',
+    ],
+    done: 'Tu método tiene nombre y lo has compartido en el Olimpo.',
+    content: '3 piezas por semana',
+  },
+  {
+    k: 'exponencial', n: '3', title: 'La Oferta que Escala', lead: 'Val', weeks: 0,
+    about: 'Diseñas tu Oferta Exponencial: el corazón de tu modelo de negocio y el lugar al que llevan todos los caminos.',
+    practical: 'Sales con tu oferta high ticket definida, con precio, vehículo y una matemática que sostiene tu meta, y validada en conversaciones reales.',
+    emotional: 'Dejas de cobrar desde el miedo y empiezas a poner precio desde tu visión y tu estándar.',
+    materials: ['Clase y hoja de trabajo de Oferta Exponencial'],
+    steps: [
+      'Define tu meta económica anual y mensual',
+      'Completa "Mi Oferta Exponencial en una página"',
+      'Elige el vehículo y el precio, y haz la matemática',
+      'Ofrécela a 3 personas reales: DM, aplicación y llamada',
+    ],
+    done: 'La has presentado en 3 conversaciones.',
+    content: 'De 4 a 5 piezas por semana',
+  },
+  {
+    k: 'lowticket', n: '4', title: 'El Puente Magnético', lead: 'Val', weeks: 0,
+    about: 'Creas tu oferta low ticket con un fragmento de tu método y la diseñas como puente hacia tu Oferta Exponencial.',
+    practical: 'Sales con tu low ticket completa: fragmento, nombre, formato, precio, ruta, bonos y el plan para presentar tu Oferta Exponencial dentro de ella.',
+    emotional: 'Sientes que tu modelo de negocio ya existe y tiene sentido de principio a fin; sabes exactamente a dónde llevas a tu clienta.',
+    materials: ['Clase y hoja de trabajo de Oferta Low Ticket'],
+    steps: [
+      'Elige el fragmento de tu método que da el primer resultado',
+      'Define nombre, tagline, formato y precio',
+      'Diseña la ruta de A a B, con un máximo de 3 bonos',
+      'Elige tu canal acompañante: un grupo de WhatsApp o Telegram',
+      'Marca en tus sesiones dónde mencionas tu Oferta Exponencial y dónde haces la invitación oficial; define el incentivo y su fecha límite',
+      'Escribe la secuencia de 5 mensajes de seguimiento',
+    ],
+    done: 'Tu low ticket está lista para venderse.',
+    content: '5 piezas por semana',
+  },
+  {
+    k: 'lanzamiento', n: '5', title: 'Lista para Lanzar', lead: 'Val', weeks: 0,
+    about: 'Reúnes todo lo que construiste y te preparas para diseñar tu primer lanzamiento a tu manera, respetando tu energía, tu momento y el tiempo que deseas dedicarle.',
+    practical: 'Tienes tu marca, tu método, tu Oferta Exponencial y tu low ticket listos, y claridad sobre cómo y cuándo quieres lanzar.',
+    emotional: 'Dejas de preguntarte si estás lista y empiezas a decidir cómo quieres hacerlo. Lanzas desde tu propio ritmo, no desde la presión.',
+    materials: ['Todo lo que creaste en las fases anteriores', 'Visionaria'],
+    steps: [
+      'Revisa que tienes tus 4 piezas listas: Brand Brief, método con nombre, Oferta Exponencial y low ticket',
+      'Define tu energía: qué ritmo de lanzamiento puedes sostener con calma y presencia',
+      'Define tu tiempo: cuántas semanas quieres dedicarle y en qué fecha quieres abrir',
+      'Escribe tu intención: qué quieres vivir y cómo te quieres sentir en este lanzamiento',
+      'Da el siguiente paso: crea tu estrategia de lanzamiento a tu medida',
+    ],
+    done: 'Tienes todo listo y has decidido cuándo y cómo quieres lanzar.',
+    content: '5 piezas por semana',
+  },
 ];
+
+/** Lo que se hace durante todo el método, en todas las fases. */
+export const ALWAYS = {
+  content: 'Desde la fase 1, publica cada semana 1 pieza para Cautivar, 1 para Conectar y 1 para Convertir, y ve aumentando la cantidad de forma progresiva. Visionaria tiene los frameworks de Contenido Magnífico.',
+  identity: 'Al cerrar cada fase, escribe un decreto y compártelo en el Olimpo de MAGNA. Toma las sesiones de Mujer Magna e integra sus prácticas y perspectivas a tu vida.',
+};
 
 export const BRAIN: BrainSection[] = [
   {
@@ -122,7 +212,7 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'contenido', n: 7, title: 'Contenido magnífico', mod: 'contenido',
+    k: 'contenido', n: 7, title: 'Contenido magnífico', mod: 'marca',
     intro: 'Tu contenido de posicionamiento: cautivar, conectar y convertir con los frameworks de contenido magnífico.',
     fields: [
       { k: 'pilares', label: 'Tus pilares de contenido', help: 'Los 3 a 5 temas sobre los que vas a hablar siempre.' },
@@ -180,8 +270,8 @@ export const BRAIN: BrainSection[] = [
     ],
   },
   {
-    k: 'ia', n: 12, title: 'Reglas para Visionaria', mod: 'marca',
-    intro: 'La guía que Visionaria va a respetar en cada respuesta, guion o documento que cree para ti.',
+    k: 'ia', n: 12, title: 'Reglas para tu Cofundadora', mod: 'marca',
+    intro: 'La guía que tu Cofundadora y Visionaria van a respetar en cada respuesta, guion o documento que creen para ti.',
     fields: [
       { k: 'nunca', label: 'Lo que nunca debería hacer' },
       { k: 'siempre', label: 'Lo que siempre debería tener en cuenta' },

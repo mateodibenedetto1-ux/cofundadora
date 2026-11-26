@@ -44,7 +44,7 @@ export default async function PanelHome() {
                       const r = journeys.get(c.id);
                       return r ? (
                         <div className="small" style={{ color: 'var(--ink-2)', marginTop: 2 }}>
-                          Hito {r.index} de {r.total} · {r.title}
+                          Fase {r.index} de {r.total} · {r.title}
                         </div>
                       ) : null;
                     })()}

@@ -24,7 +24,7 @@ export default async function Metodo({ searchParams }: { searchParams: Promise<{
     <div className="page-enter stack" style={{ gap: 24 }}>
       <header className="hello">
         <h1>Método MAGNA</h1>
-        <p>Todo lo que Visionaria sabe del método: clases, transcripciones y guías. Lo usa para responderles a las fundadoras como lo harías tú.</p>
+        <p>Todo lo que la Cofundadora y Visionaria saben del método: clases, transcripciones y guías. Lo usan para responderles a las fundadoras como lo harías tú.</p>
       </header>
       {sp.error && <p className="panel panel-pad small" style={{ color: 'var(--warn)' }}>{sp.error}</p>}
       {sp.ok && <p className="panel panel-pad small" style={{ color: 'var(--ok)' }}>Dropbox conectado. Ahora suma las carpetas.</p>}

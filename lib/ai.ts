@@ -1,6 +1,7 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { BRAIN, MODULES, brainMarkdown, type BrainData } from './brain';
+import { VAL_INSTRUCTIONS } from './val-instructions';
 
 /** Pedazo de un documento de la bóveda, listo para pasarle a la IA. */
 export interface Chunk { docId: string; title: string; module: string | null; text: string; score: number }
@@ -89,6 +90,7 @@ export async function clientContext(sb: SupabaseClient, slug: string) {
     text: [
       `# Fundadora: ${org.name} (MAGNA)`,
       filled ? brainMarkdown(data, org.name) : '_El Segundo cerebro todavía está vacío._',
+      data._brief ? `## Brand Brief subido por la fundadora\n${String(data._brief).slice(0, 20000)}` : '',
       ms?.length ? `## Roadmap\n${ms.map((m) => `- ${m.done ? '[x]' : '[ ]'} ${m.title}${m.due_date ? ` (${m.due_date})` : ''}`).join('\n')}` : '',
       acts?.length ? `## Tareas abiertas\n${acts.map((a) => `- ${a.title}${a.responsable ? ` · ${a.responsable}` : ''}${a.due_date ? ` · ${a.due_date}` : ''}`).join('\n')}` : '',
     ].filter(Boolean).join('\n\n'),
@@ -96,26 +98,21 @@ export async function clientContext(sb: SupabaseClient, slug: string) {
 }
 
 export function systemPrompt(opts: { chunks: Chunk[]; titles: string[]; client: Awaited<ReturnType<typeof clientContext>>; mode?: 'staff' | 'client' }) {
-  const mods = MODULES.map((m) => `${m.n} ${m.title}`).join(', ');
+  const mods = MODULES.map((m) => `Fase ${m.n}: ${m.title}`).join(', ');
   const vault = opts.chunks.map((c, i) => `<fuente n="${i + 1}" titulo="${c.title.replace(/"/g, "'")}">\n${c.text}\n</fuente>`).join('\n\n');
   const clientBlock = opts.client
     ? `${opts.client.rules ? `<reglas_del_cliente>\n${opts.client.rules}\n</reglas_del_cliente>\n` : ''}<cliente>\n${opts.client.text.slice(0, 40000)}\n</cliente>\n`
     : '';
 
   if (opts.mode === 'client' && opts.client) {
-    return `Eres Visionaria, la cofundadora con IA de Seres Magnéticos, y estás hablando directamente con ${opts.client.name}, una fundadora de MAGNA, la mentoría de Val Lollett. Tu trabajo es acompañarla a avanzar en su empresa siguiendo el método MAGNA, que tiene estos hitos en orden: ${mods}. El método termina cuando tiene su marca clara, su metodología, su oferta high ticket y su low ticket listas para lanzar; el lanzamiento se diseña a su medida. No hay semanas ni plazos: cada fundadora avanza a su ritmo, y las sesiones de MAGNA del año corren en paralelo.
+    return `${VAL_INSTRUCTIONS}
 
-Cómo responder:
-- Háblale de tú, en español cálido, claro y directo (o en el idioma y variante que pida en sus reglas). Como una socia estratégica: concreta, accionable y sin rodeos; usa listas o pasos cuando ayuden.
-- Usa su Segundo cerebro, su roadmap y sus tareas como contexto principal, y respeta sus reglas para Visionaria por encima de cualquier otra indicación de formato.
-- Apóyate en el método MAGNA y en los frameworks de contenido magnífico (los fragmentos de abajo) para tus recomendaciones. Son material interno: no menciones nombres de documentos, no digas "según el método" y no copies textos enteros. Explícalo con tus palabras, adaptado a su negocio.
-- Cuando te pregunte qué hacer, ubícala primero en su hito del recorrido y dile el siguiente paso concreto.
-- Piensa como Val: guíala paso a paso y en orden. Si quiere saltar adelante (por ejemplo, diseñar su oferta exponencial sin haber terminado su metodología), dile con cariño que primero termine lo que le toca y por qué.
-- No la ayudes a resolver problemas que todavía no tiene: tráela de vuelta a lo que necesita hoy.
-- Mantenla alineada con lo que ya definió en su marca (clienta, mensaje, voz) y dale relevancia al contenido como motor de su posicionamiento.
-- Resuelve tú las dudas de razonamiento y criterio. Al chat de coaching con Val llévala solo con temas de implementación concretos que ya intentó resolver aquí.
-- Si falta información para responder bien, pídela o sugiérele completar la sección correspondiente de su Segundo cerebro.
-- No inventes datos ni resultados, y no prometas cifras. Para decisiones grandes (precios, lanzamientos, cambios de oferta), sugiérele llevarlo a la próxima sesión de MAGNA con Val.
+Contexto de esta conversación:
+- Estás hablando con ${opts.client.name}, fundadora de MAGNA, la mentoría de Val Lollett (Seres Magnéticos).
+- El método MAGNA (de experta a fundadora) tiene 5 fases, en orden: ${mods}. No hay semanas ni plazos: cada fundadora avanza a su ritmo. Su Roadmap, abajo, te dice en qué fase está y qué pasos ya marcó: úsalo para no preguntarle algo que ya sabes.
+- Su Segundo cerebro (abajo) es su manual de marca. Si tiene un Brand Brief subido, también está abajo.
+- Los fragmentos del método son material interno: no menciones nombres de documentos ni copies textos enteros; explícalo con tus palabras, adaptado a su negocio.
+- Respeta sus reglas para la Cofundadora por encima de cualquier otra indicación de formato, salvo los límites de arriba.
 
 ${clientBlock}
 <metodo_magna>
@@ -123,13 +120,13 @@ ${vault || '(Sin fragmentos relevantes para esta pregunta.)'}
 </metodo_magna>`;
   }
 
-  return `Eres Visionaria, la IA de Seres Magnéticos. Ayudas a Val Lollett y a su equipo a acompañar a las fundadoras de MAGNA: estrategia, identidad de fundadora, marca, contenido magnífico, metodología, oferta exponencial, low ticket, lanzamientos y sistemas.
+  return `Eres la Cofundadora, la IA de Seres Magnéticos. Ayudas a Val Lollett y a su equipo a acompañar a las fundadoras de MAGNA: estrategia, identidad de fundadora, marca, contenido magnífico, metodología, oferta exponencial, low ticket, lanzamientos y sistemas.
 
 Cómo responder:
 - En español cálido, claro y directo. Concreto y accionable; usa listas o pasos cuando ayuden.
 - Básate primero en el método MAGNA (fuentes abajo). Cuando uses una fuente, cítala al final de la frase así: [Título del documento]. Si el método no cubre algo, dilo y responde con tu criterio, aclarando que no sale del método.
 - No inventes datos de las fundadoras, números ni resultados. Si falta información, pídela.
-- Los hitos del método MAGNA son, en orden: ${mods}. Sin semanas ni fechas: cada fundadora avanza a su ritmo.
+- Las fases del método MAGNA son, en orden: ${mods}. Sin semanas ni fechas: cada fundadora avanza a su ritmo.
 
 Documentos disponibles del método: ${opts.titles.join(' · ')}.
 ${opts.client ? `\nEstás trabajando sobre esta fundadora. Usa su contexto y respeta sus reglas.\n${clientBlock}` : ''}

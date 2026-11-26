@@ -8,6 +8,7 @@ import { DEMO } from './env';
 export interface StageTask { id: string; title: string; done: boolean; owner: string; due_date: string | null; source: string; why: string | null }
 export interface Stage {
   k: string; n: string; title: string; about: string; lead: string;
+  practical?: string; emotional?: string; materials?: string[]; done?: string; content?: string;
   state: 'done' | 'now' | 'next';
   objective: string | null;
   sections: { k: string; n: number; title: string; pct: number }[];
@@ -16,9 +17,10 @@ export interface Stage {
 }
 export interface JourneyView { stages: Stage[]; index: number; total: number; pct: number; current: string | null; docId: string | null; classesUrl: string | null }
 
-/** Un hito está cumplido cuando sus secciones del Segundo cerebro llegan al 80 % y sus tareas están hechas. */
+/** Una fase está cumplida cuando hizo todos sus pasos (si no tiene pasos, cuando completó sus secciones). */
 export function stageDone(sections: { pct: number }[], tasks: { done: boolean }[]) {
-  return sections.every((s) => s.pct >= 80) && tasks.every((t) => t.done) && (sections.length + tasks.length > 0);
+  if (tasks.length) return tasks.every((t) => t.done);
+  return sections.length > 0 && sections.every((s) => s.pct >= 80);
 }
 
 /** Arma el recorrido por hitos con todo lo de cada uno. Null si la fundadora no tiene recorrido. */
@@ -53,6 +55,7 @@ function assemble(org: Org, data: BrainData, phases: MsRow[], ms: MsRow[], acts:
     else if (!foundCurrent) { state = 'now'; foundCurrent = true; }
     return {
       k: m.k, n: m.n, title: m.title, about: m.about, lead: leadShort(m.lead), state,
+      practical: m.practical, emotional: m.emotional, materials: m.materials, done: m.done, content: m.content,
       objective: ph?.detail ?? null, sections, tasks,
       hitos: ms.filter((x) => x.kind !== 'fase' && x.module === m.k).map((x) => ({ id: x.id, title: x.title, date: x.due_date, detail: x.detail })),
     };
@@ -78,7 +81,7 @@ async function demoJourney(org: Org): Promise<JourneyView | null> {
   const keep = new Set(['partida', 'identidad', 'clienta', 'marca', 'mensaje', 'voz', 'ia', 'contenido']);
   const data = Object.fromEntries(Object.entries(BRAIN_SAMPLE).filter(([k]) => keep.has(k.split('.')[0])));
   const phases: MsRow[] = MODULES.map((m) => ({ id: `ph-${m.k}`, title: m.title, detail: m.about, due_date: null, kind: 'fase', brain_section: m.k, module: m.k }));
-  const acts: ActRow[] = MODULES.map((m, i) => ({ id: `t-${m.k}`, title: `Ver las clases del método: ${m.title}`, done: i < 2, owner: 'cliente', due_date: null, source: 'recorrido', why: null, module: m.k }));
+  const acts: ActRow[] = MODULES.flatMap((m, i) => (m.steps ?? []).map((st, j) => ({ id: `t-${m.k}-${j}`, title: st, done: i < 1 || (i === 1 && j < 2), owner: 'cliente', due_date: null, source: 'recorrido', why: null, module: m.k })));
   return assemble(org, data, phases, phases, acts, null);
 }
 

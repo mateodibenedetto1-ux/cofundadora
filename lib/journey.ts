@@ -1,13 +1,13 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { BRAIN, MODULES } from './brain';
+import { MODULES } from './brain';
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 export const leadShort = (lead: string) => lead;
 
 /**
- * Crea el Recorrido MAGNA: un hito por etapa del método, con sus tareas base, sin fechas.
+ * Crea el Recorrido MAGNA: las 5 fases del método con sus pasos como checklist, sin fechas.
  * No hay semanas ni desbloqueos: cada fundadora avanza a su ritmo. Reemplaza uno anterior.
  */
 export async function buildJourney(sb: SupabaseClient, orgId: string, _start: string, programUrl: string | null) {
@@ -16,17 +16,18 @@ export async function buildJourney(sb: SupabaseClient, orgId: string, _start: st
   let pos = 0;
   for (const m of MODULES) {
     const ms = await sb.from('milestones').insert({
-      org_id: orgId, title: `Hito ${m.n} — ${m.title}`, detail: m.about, due_date: null, kind: 'fase', position: Number(m.n), brain_section: m.k, module: m.k,
+      org_id: orgId, title: `Fase ${m.n} — ${m.title}`, detail: m.about, due_date: null, kind: 'fase', position: Number(m.n), brain_section: m.k, module: m.k,
     });
     if (ms.error) throw new Error(ms.error.message);
-    const rows = [
-      { org_id: orgId, title: `Ver las clases del método: ${m.title}`, why: programUrl ? `Están aquí: ${programUrl}` : 'Las clases de este hito están en la plataforma de MAGNA.', owner: 'cliente', due_date: null, position: pos++, source: 'recorrido', brain_section: null as string | null, module: m.k },
-      ...BRAIN.filter((s) => s.mod === m.k).map((s) => ({
-        org_id: orgId, title: `Completar ${s.title} en tu Segundo cerebro`, why: 'Se marca sola cuando la sección llega al 80 %.', owner: 'cliente', due_date: null, position: pos++, source: 'recorrido', brain_section: s.k, module: m.k,
-      })),
-    ];
-    const t = await sb.from('action_items').insert(rows);
-    if (t.error) throw new Error(t.error.message);
+    // El checklist de cada fase son los pasos del método MAGNA
+    const rows = (m.steps ?? []).map((step, i) => ({
+      org_id: orgId, title: step, why: i === 0 && programUrl ? `Clases y hojas de trabajo: ${programUrl}` : null,
+      owner: 'cliente', due_date: null, position: pos++, source: 'recorrido', brain_section: null as string | null, module: m.k,
+    }));
+    if (rows.length) {
+      const t = await sb.from('action_items').insert(rows);
+      if (t.error) throw new Error(t.error.message);
+    }
   }
 }
 

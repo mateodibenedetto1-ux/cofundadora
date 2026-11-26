@@ -34,23 +34,19 @@ export default async function PortalLayout({ children, params }: { children: Rea
         <nav className="portal-nav" aria-label="Secciones">
           <NavLink href={base} exact>Inicio</NavLink>
           <NavLink href={`${base}/cerebro`}>Segundo cerebro</NavLink>
-          <NavLink href={`${base}/ia`}>Visionaria</NavLink>
-          <NavLink href={`${base}/contenido`}>Contenido</NavLink>
-          <NavLink href={`${base}/accionables`}>Accionables</NavLink>
-          <NavLink href={`${base}/recursos`}>Recursos</NavLink>
-          <NavLink href={`${base}/biblioteca`}>Biblioteca</NavLink>
+          <NavLink href={`${base}/ia`}>Cofundadora</NavLink>
+          <NavLink href={`${base}/visionaria`}>Visionaria</NavLink>
           <NavLink href={`${base}/roadmap`}>Roadmap</NavLink>
+          <NavLink href={`${base}/biblioteca`}>Biblioteca</NavLink>
         </nav>
         <MobileMenu side="portal" mark={<Mark href={base} />}>
           <nav className="drawer-nav" aria-label="Secciones">
             <NavLink href={base} exact>Inicio</NavLink>
             <NavLink href={`${base}/cerebro`}>Segundo cerebro</NavLink>
-            <NavLink href={`${base}/ia`}>Visionaria</NavLink>
-            <NavLink href={`${base}/contenido`}>Contenido</NavLink>
-            <NavLink href={`${base}/accionables`}>Accionables</NavLink>
-            <NavLink href={`${base}/recursos`}>Recursos</NavLink>
-            <NavLink href={`${base}/biblioteca`}>Biblioteca</NavLink>
+            <NavLink href={`${base}/ia`}>Cofundadora</NavLink>
+            <NavLink href={`${base}/visionaria`}>Visionaria</NavLink>
             <NavLink href={`${base}/roadmap`}>Roadmap</NavLink>
+            <NavLink href={`${base}/biblioteca`}>Biblioteca</NavLink>
           </nav>
           <div className="row side-foot">
             <span className="small grow muted">{org.name}</span>
