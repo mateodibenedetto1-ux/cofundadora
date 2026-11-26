@@ -58,7 +58,12 @@ const CONFIG_ID = 'config:dropbox';
 export interface DropboxConfig { folders: { url: string; label: string }[]; lastSync?: string; lastResult?: string }
 
 export const dropboxReady = () => Boolean(process.env.DROPBOX_APP_KEY && process.env.DROPBOX_APP_SECRET);
-export const dropboxRedirect = () => `${APP_URL}/api/dropbox/callback`;
+/** Siempre la URL pública de producción, con https (Dropbox exige una dirección absoluta y exacta). */
+export const dropboxRedirect = () => {
+  const prod = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const base = prod ? `https://${prod}` : APP_URL;
+  return `${base.replace(/\/$/, '')}/api/dropbox/callback`;
+};
 
 async function agencyId() {
   const { data } = await supabaseAdmin().from('organizations').select('id').eq('kind', 'agency').limit(1).single();
