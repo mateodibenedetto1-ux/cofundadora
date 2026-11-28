@@ -8,6 +8,7 @@ import { Cells } from '@/components/Cells';
 import type { ClientSummary } from '@/lib/types';
 
 export const metadata = { title: 'Fundadoras' };
+export const maxDuration = 300;
 
 export default async function Clients({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const [everyone, sp] = await Promise.all([listClients(), searchParams]);
