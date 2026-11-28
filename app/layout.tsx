@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <head>
         {/* Aplica el tema elegido antes de pintar, para que no parpadee */}
-        <script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('sm-theme');document.documentElement.dataset.theme=(t==='dark'?'dark':'light')}catch(e){}" }} />
+        <script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('sm-theme');document.documentElement.dataset.theme=(t==='light'?'light':'dark')}catch(e){}" }} />
       </head>
       <body>{children}</body>
     </html>

@@ -11,7 +11,7 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const saved = document.documentElement.dataset.theme as Theme | undefined;
-    setTheme(saved ?? 'light');
+    setTheme(saved ?? 'dark');
   }, []);
 
   const toggle = () => {
