@@ -166,7 +166,6 @@ export function FractalChat({ clients = [], initialClient, fixedClient, mode = '
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(input); } }}
         />
-        <VoiceButton onText={(t) => setInput((v) => (v ? `${v} ${t}` : t))} disabled={busy} />
         <button className="btn primary" disabled={busy || !input.trim()}>{busy ? 'Pensando…' : 'Enviar'}</button>
       </form>
     </div>
