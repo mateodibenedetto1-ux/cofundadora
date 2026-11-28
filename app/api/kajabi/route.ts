@@ -37,3 +37,12 @@ export async function POST(req: Request) {
   const r = await provisionFundadora({ name, email: p.email }, { invite: true });
   return NextResponse.json(r, { status: r.status === 'error' ? 500 : 200 });
 }
+
+/** Kajabi revisa la URL antes de guardarla: respondemos sin redirigir. */
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
+export async function HEAD() {
+  return new Response(null, { status: 200 });
+}
