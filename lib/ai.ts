@@ -86,6 +86,7 @@ export async function clientContext(sb: SupabaseClient, slug: string) {
     id: org.id as string,
     segment: org.segment as string,
     name: org.name as string,
+    cofuName: String(data._cofu_name ?? '').trim(),
     rules: rules || '',
     text: [
       `# Fundadora: ${org.name} (MAGNA)`,
@@ -107,7 +108,8 @@ export function systemPrompt(opts: { chunks: Chunk[]; titles: string[]; client: 
   if (opts.mode === 'client' && opts.client) {
     return `${VAL_INSTRUCTIONS}
 
-Contexto de esta conversación:
+Contexto de esta conversación:${opts.client.cofuName ? `
+- La fundadora te puso un nombre: te llamas ${opts.client.cofuName}. Si te preguntan cómo te llamas o te presentas, usa ese nombre.` : ''}
 - Estás hablando con ${opts.client.name}, fundadora de MAGNA, la mentoría de Val Lollett (Seres Magnéticos).
 - El método MAGNA (de experta a fundadora) tiene 5 fases, en orden: ${mods}. No hay semanas ni plazos: cada fundadora avanza a su ritmo. Su Roadmap, abajo, te dice en qué fase está y qué pasos ya marcó: úsalo para no preguntarle algo que ya sabes.
 - Su Segundo cerebro (abajo) es su manual de marca. Si tiene un Brand Brief subido, también está abajo.

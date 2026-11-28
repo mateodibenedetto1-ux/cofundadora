@@ -1151,3 +1151,5 @@ button[aria-busy='true'] { cursor: progress; }
 .vs-opts .chip { text-align: left; }
 .vs-out .ai-md { line-height: 1.65; }
 .vs-edit { width: 100%; font-family: inherit; line-height: 1.6; }
+.cofu-name { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.cofu-name-form .input { min-width: 0; }

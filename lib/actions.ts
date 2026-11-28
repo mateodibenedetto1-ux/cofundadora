@@ -754,3 +754,13 @@ export async function uploadBrandBrief(orgId: string, _prev: unknown, form: Form
     return { ok: false, msg: e instanceof Error ? e.message : 'No se pudo leer el archivo' };
   }
 }
+
+/** La fundadora le pone nombre a su Cofundadora. */
+export async function setCofundadoraName(orgId: string, name: string) {
+  if (DEMO) return { ok: true };
+  const v = await requireViewer();
+  if (!v.isStaff && !v.clientOrgIds.includes(orgId)) return { ok: false };
+  await saveBrain(orgId, { _cofu_name: name.trim().slice(0, 40) });
+  refresh();
+  return { ok: true };
+}
