@@ -1,3 +1,4 @@
+import { HowToVideo } from '@/components/HowToVideo';
 import { getCalls, getDocs, getOrgBySlug, getResources } from '@/lib/data';
 import { Library } from '@/components/Library';
 import { Resources } from '@/components/Resources';
@@ -14,6 +15,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <h1 style={{ fontSize: 38 }}>Biblioteca</h1>
         <p>Tus fundamentos, el contenido que creaste con Visionaria y los recursos de MAGNA: clases, guías y plantillas.</p>
       </header>
+      <div style={{ marginBottom: 32 }}><HowToVideo /></div>
       {(org.program_url || items.length > 0) && (
         <section style={{ marginBottom: 32 }}>
           <div className="row between wrap" style={{ gap: 10, marginBottom: 12 }}>

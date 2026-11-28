@@ -1158,3 +1158,10 @@ button[aria-busy='true'] { cursor: progress; }
 .login-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .login-btn[aria-busy='true'] { opacity: .85; cursor: progress; }
 .login-star { animation: star-spin 1.4s cubic-bezier(.6, 0, .4, 1) infinite; }
+
+/* Video "Cómo funciona tu Cofundadora" */
+.howto { padding: 0; overflow: hidden; }
+.howto-head { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px 20px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.howto-head:hover .howto-play { transform: scale(1.06); }
+.howto-play { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); flex: none; transition: transform .2s var(--ease); }
+.howto-video { display: block; width: 100%; max-height: 70vh; background: #000; border-top: 1px solid var(--line-soft); }

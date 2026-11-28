@@ -1,3 +1,4 @@
+import { HowToVideo } from '@/components/HowToVideo';
 import Link from 'next/link';
 import { getActions, getBrain, getCalls, getDocs, getMilestones, getOrgBySlug, getResources, requireViewer } from '@/lib/data';
 import { JourneyCard } from '@/components/Journey';
@@ -44,6 +45,8 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
             : 'Aquí está tu recorrido en MAGNA y tu próximo paso.'}
         </p>
       </section>
+
+      <div style={{ marginTop: 24 }}><HowToVideo /></div>
 
       {(org.workflow?.length ?? 0) > 0 && (
         <div style={{ marginTop: 32 }}><WorkflowCard orgId={org.id} steps={org.workflow ?? []} staff={false} clientName={org.contact_name || org.name} /></div>
