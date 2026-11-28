@@ -9,7 +9,7 @@ import { genByKey } from '@/lib/generators';
 export const runtime = 'nodejs';
 export const maxDuration = 120;
 
-/** Visionaria: genera una pieza de contenido con el ADN de la fundadora y los frameworks de MAGNA. */
+/** Visionaria: genera piezas con las instrucciones de VisionarIA, el Segundo cerebro de la fundadora y los frameworks de MAGNA. */
 export async function POST(req: Request) {
   const v = await getViewer();
   if (!v) return new Response('No autorizado', { status: 401 });
@@ -26,27 +26,28 @@ export async function POST(req: Request) {
 
   const values = body.values ?? {};
   const form = gen.fields.map((f) => `- ${f.label}: ${String(values[f.k] ?? '').trim() || '(sin completar)'}`).join('\n');
-  const chunks = await retrieve(supabaseAdmin(), `${gen.label} ${values.tema ?? values.transformacion ?? values.oferta ?? ''} contenido magnífico framework gancho cautivar conectar convertir`, 12);
-  const vault = chunks.map((c, i) => `<fuente n="${i + 1}" titulo="${c.title.replace(/"/g, "'")}">\n${c.text}\n</fuente>`).join('\n\n');
+  const { VISIONARIA_INSTRUCTIONS, FRAMEWORK_CONTENIDO, FRAMEWORK_PAGINA_VENTA } = await import('@/lib/magna-docs');
+  // Materiales que el equipo sumó después (Dropbox o Método), sin repetir los dos frameworks base
+  const extra = (await retrieve(supabaseAdmin(), `${gen.label} ${values.tema ?? values.transformacion ?? values.oferta ?? ''} framework gancho cautivar conectar convertir`, 8))
+    .filter((c) => !c.docId.startsWith('static:') && !/contenido magn|p.gina de venta/i.test(c.title));
+  const vault = extra.map((c, i) => `<fuente n="${i + 1}" titulo="${c.title.replace(/"/g, "'")}">\n${c.text}\n</fuente>`).join('\n\n');
+  const isSales = gen.k === 'venta';
 
-  const system = `Eres Visionaria, la generadora de contenido de MAGNA (Seres Magnéticos, la mentoría de Val Lollett). Conviertes las ideas de cada fundadora en piezas listas para publicar, usando los frameworks de Contenido Magnífico.
+  const frameworks = `<framework_contenido_magnifico>\n${FRAMEWORK_CONTENIDO}\n</framework_contenido_magnifico>\n\n<guia_pagina_de_venta_magna>\n${FRAMEWORK_PAGINA_VENTA}\n</guia_pagina_de_venta_magna>`;
+  const rules = `${VISIONARIA_INSTRUCTIONS}
 
-Reglas:
-- Trabajas SIEMPRE con la esencia y el tono de voz de la fundadora, desde su Segundo cerebro (abajo): su clienta premium, su mensaje, su voz, las palabras que usa y las que evita. Si su voz pide un registro, úsalo; si no, español neutro latinoamericano con "tú".
-- Usa los frameworks de Contenido Magnífico (fragmentos de abajo) como estructura. Son material interno: no los nombres ni copies sus textos.
-- Cautivar atrae a personas nuevas, Conectar genera confianza con quien ya la sigue y Convertir lleva a la acción o a la venta. Ajusta el gancho, la profundidad y el CTA a eso.
-- No inventes datos, cifras, testimonios ni resultados. Si falta algo, deja un marcador [completar].
-- Sin entusiasmo artificial ni exceso de emojis. Concreta y con escenas antes que teoría.
-- Entrega solo la pieza, en Markdown, sin introducciones ni explicaciones al final.
+Cómo funciona aquí: la fundadora no escribe en un chat, completa un formulario de Visionaria (abajo). Toma ese formulario como su pedido. Si falta un dato indispensable, no preguntes: escribe la mejor propuesta y deja marcadores visibles como [PRECIO]. Entrega en Markdown.
+Framework principal para este pedido: ${isSales ? 'la guía Página de Venta MAGNA' : 'el Framework de Contenido Magnífico'}.`;
+  const dynamic = `Formato pedido: ${gen.title}. ${gen.guide}
 
-Formato pedido: ${gen.title}. ${gen.guide}
-
-<fundadora>
+<segundo_cerebro_de_la_fundadora>
 ${client.text.slice(0, 30000)}
-</fundadora>
-<frameworks>
-${vault || '(Sin fragmentos: usa buenas prácticas de contenido y la voz de la fundadora.)'}
-</frameworks>`;
+</segundo_cerebro_de_la_fundadora>${vault ? `\n\n<otros_materiales_de_magna>\n${vault}\n</otros_materiales_de_magna>` : ''}`;
+  // Las instrucciones y los frameworks no cambian: se cachean para que cada pieza cueste menos
+  const system: Anthropic.TextBlockParam[] = [
+    { type: 'text', text: `${rules}\n\n${frameworks}`, cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: dynamic },
+  ];
 
   const user = body.previous && body.tweak
     ? `Esta es la pieza que generaste:\n\n${body.previous.slice(0, 12000)}\n\nAjústala así: ${body.tweak}`
@@ -57,7 +58,7 @@ ${vault || '(Sin fragmentos: usa buenas prácticas de contenido y la voz de la f
   const stream = new ReadableStream({
     async start(ctrl) {
       try {
-        const s = anthropic.messages.stream({ model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5', max_tokens: 4000, system, messages: [{ role: 'user', content: user }] });
+        const s = anthropic.messages.stream({ model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5', max_tokens: 12000, system, messages: [{ role: 'user', content: user }] });
         for await (const ev of s) if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') ctrl.enqueue(enc.encode(ev.delta.text));
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);

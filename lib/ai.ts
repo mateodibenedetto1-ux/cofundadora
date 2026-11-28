@@ -29,7 +29,11 @@ function chunk(text: string, size = 2400): string[] {
 /** Busca en la bóveda (kb_documents) los bloques más relevantes para la pregunta (BM25). */
 export async function retrieve(sb: SupabaseClient, query: string, limit = 10): Promise<Chunk[]> {
   const { data } = await sb.from('kb_documents').select('id, title, module, category, content').eq('status', 'ok');
-  const docs = (data ?? []) as { id: string; title: string; module: string | null; category: string | null; content: string | null }[];
+  const { MAGNA_STATIC_DOCS } = await import('./magna-docs');
+  const fromDb = (data ?? []) as { id: string; title: string; module: string | null; category: string | null; content: string | null }[];
+  const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+  const have = new Set(fromDb.map((d) => norm(d.title)));
+  const docs = [...fromDb, ...MAGNA_STATIC_DOCS.filter((d) => !have.has(norm(d.title)))];
   const q = [...new Set(terms(query))];
   if (!q.length || !docs.length) return [];
 
