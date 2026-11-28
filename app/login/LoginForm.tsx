@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
@@ -13,6 +13,22 @@ export function LoginForm() {
   const [busy, setBusy] = useState(false);
   const sb = supabaseBrowser();
   const callback = () => `${window.location.origin}/auth/callback`;
+
+  // Links de email viejos llegan con la sesión en el #hash: la tomamos y seguimos
+  useEffect(() => {
+    const h = new URLSearchParams(window.location.hash.slice(1));
+    const access_token = h.get('access_token');
+    const refresh_token = h.get('refresh_token');
+    if (h.get('error_description')) { setMsg({ tone: 'error', text: 'Ese link ya venció o ya se usó. Pide un link nuevo abajo.' }); return; }
+    if (new URLSearchParams(window.location.search).get('link') === 'vencido') setMsg({ tone: 'error', text: 'Ese link ya venció o ya se usó. Pide un link nuevo abajo.' });
+    if (!access_token || !refresh_token) return;
+    const type = h.get('type');
+    sb.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+      if (error) setMsg({ tone: 'error', text: 'Ese link ya venció o ya se usó. Pide un link nuevo abajo.' });
+      else window.location.replace(type === 'invite' || type === 'recovery' ? '/set-password' : '/');
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
