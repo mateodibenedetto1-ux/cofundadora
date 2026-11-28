@@ -1,4 +1,5 @@
 import { SubmitButton } from '@/components/SubmitButton';
+import { RemoveMember } from '@/components/RemoveMember';
 import { getMembers, requireViewer } from '@/lib/data';
 import { inviteClientUser, updateMyName } from '@/lib/actions';
 import { DEMO } from '@/lib/env';
@@ -43,6 +44,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
                 </div>
                 {m.pending && <span className="tag brand">Invitación pendiente</span>}
                 <span className="tag">{m.role === 'owner' ? 'Dueño' : m.role === 'admin' ? 'Admin' : 'Equipo'}</span>
+                {m.role !== 'owner' && m.userId !== me.id && <RemoveMember orgId={agencyId} userId={m.userId} pending={m.pending} />}
               </li>
             ))}
             {!team.length && <li className="empty">Sin miembros cargados.</li>}

@@ -1,6 +1,7 @@
 import { SubmitButton } from '@/components/SubmitButton';
 import { getMembers, getOrgBySlug } from '@/lib/data';
 import { inviteClientUser } from '@/lib/actions';
+import { RemoveMember } from '@/components/RemoveMember';
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const org = await getOrgBySlug((await params).slug);
@@ -16,6 +17,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                 <div style={{ fontWeight: 500 }}>{m.name || m.email}</div>
                 <div className="muted small">{m.email}</div>
               </div>
+              {m.pending && <span className="tag brand">Invitación pendiente</span>}
+              <RemoveMember orgId={org.id} userId={m.userId} pending={m.pending} />
             </li>
           ))}
           {!members.length && <li className="empty">Nadie tiene acceso todavía. Invitá al cliente con su email.</li>}

@@ -382,6 +382,24 @@ export async function inviteClientUser(form: FormData) {
   refresh();
 }
 
+/** Quita el acceso de alguien a un espacio. Si nunca entró y no tiene otros accesos, se borra la invitación entera. */
+export async function removeMember(orgId: string, userId: string) {
+  if (DEMO) return { ok: true };
+  const v = await requireStaff();
+  if (userId === v.id) return { ok: false, msg: 'No puedes quitarte a ti misma.' };
+  const admin = supabaseAdmin();
+  const { data: m } = await admin.from('memberships').select('role').eq('org_id', orgId).eq('user_id', userId).maybeSingle();
+  if (m?.role === 'owner') return { ok: false, msg: 'No se puede quitar a la dueña de la cuenta.' };
+  await admin.from('memberships').delete().eq('org_id', orgId).eq('user_id', userId);
+  const [{ data: u }, { count }] = await Promise.all([
+    admin.auth.admin.getUserById(userId),
+    admin.from('memberships').select('org_id', { count: 'exact', head: true }).eq('user_id', userId),
+  ]);
+  if (u?.user && !u.user.last_sign_in_at && !count) await admin.auth.admin.deleteUser(userId);
+  refresh();
+  return { ok: true };
+}
+
 export async function updateMyName(form: FormData) {
   if (DEMO) return;
   const v = await requireViewer();

@@ -243,7 +243,7 @@ export async function getConnections(): Promise<FathomConnection[]> {
   return (data ?? []) as FathomConnection[];
 }
 
-export async function getMembers(orgId: string): Promise<{ email: string; name: string; role: string; pending: boolean }[]> {
+export async function getMembers(orgId: string): Promise<{ userId: string; email: string; name: string; role: string; pending: boolean }[]> {
   if (DEMO) return [];
   const sb = await supabaseServer();
   const { data } = await sb.from('memberships').select('role, user_id').eq('org_id', orgId);
@@ -260,7 +260,7 @@ export async function getMembers(orgId: string): Promise<{ email: string; name: 
   }));
   return (data ?? []).map((m) => {
     const p = profiles?.find((x) => x.id === m.user_id);
-    return { email: p?.email ?? '', name: p?.full_name ?? '', role: m.role, pending: !signedIn.get(m.user_id) };
+    return { userId: m.user_id as string, email: p?.email ?? '', name: p?.full_name ?? '', role: m.role, pending: !signedIn.get(m.user_id) };
   });
 }
 
