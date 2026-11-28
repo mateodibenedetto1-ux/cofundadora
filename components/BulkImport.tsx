@@ -15,7 +15,7 @@ export function BulkImport() {
         <textarea className="input" name="list" rows={8} placeholder={'Romina Hendlin — Fotógrafa\n@rominahendlin\nromina@gmail.com\n\nGabriela Testa, gabriela@gmail.com'} required />
       </label>
       <label className="row" style={{ gap: 8 }}>
-        <input type="checkbox" name="invite" defaultChecked /> <span className="small">Mandarles la invitación por email ahora</span>
+        <input type="checkbox" name="invite" /> <span className="small">Mandarles la invitación por email ahora</span>
       </label>
       <div><SubmitButton pendingLabel="Creando portales…">Crear portales</SubmitButton></div>
       {results.length > 0 && (
