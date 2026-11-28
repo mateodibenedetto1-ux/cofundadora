@@ -37,7 +37,7 @@ export function LoginForm() {
     if (mode === 'password') {
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) setMsg({ tone: 'error', text: 'El email o la contraseña no coinciden. Prueba de nuevo o pide un link de acceso.' });
-      else router.replace('/');
+      else { router.replace('/'); return; } // queda cargando hasta que abre el portal
     } else {
       const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: callback(), shouldCreateUser: false } });
       if (error) setMsg({ tone: 'error', text: 'No encontramos una cuenta con ese email. Pide acceso al equipo de Seres Magnéticos.' });
@@ -48,16 +48,6 @@ export function LoginForm() {
 
   return (
     <div className="stack" style={{ gap: 14 }}>
-      <button
-        className="btn"
-        type="button"
-        onClick={() => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callback() } })}
-      >
-        Continuar con Google
-      </button>
-      <div className="row muted small" style={{ gap: 12 }}>
-        <span className="grow" style={{ borderTop: '1px solid var(--line)' }} />o<span className="grow" style={{ borderTop: '1px solid var(--line)' }} />
-      </div>
       <form onSubmit={submit} className="stack" style={{ gap: 12 }}>
         <label className="field">
           Email
@@ -69,8 +59,13 @@ export function LoginForm() {
             <input className="input" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </label>
         )}
-        <button className="btn primary" disabled={busy}>
-          {mode === 'password' ? 'Ingresar' : 'Enviarme un link'}
+        <button className="btn primary login-btn" disabled={busy} aria-busy={busy}>
+          {busy && (
+            <svg className="login-star" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5Z" fill="currentColor" />
+            </svg>
+          )}
+          {busy ? (mode === 'password' ? 'Entrando…' : 'Enviando…') : mode === 'password' ? 'Ingresar' : 'Enviarme un link'}
         </button>
       </form>
       <button className="btn ghost sm" type="button" onClick={() => setMode(mode === 'password' ? 'link' : 'password')}>

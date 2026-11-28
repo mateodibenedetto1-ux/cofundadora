@@ -1153,3 +1153,8 @@ button[aria-busy='true'] { cursor: progress; }
 .vs-edit { width: 100%; font-family: inherit; line-height: 1.6; }
 .cofu-name { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .cofu-name-form .input { min-width: 0; }
+
+/* Login: estrella girando mientras entra */
+.login-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.login-btn[aria-busy='true'] { opacity: .85; cursor: progress; }
+.login-star { animation: star-spin 1.4s cubic-bezier(.6, 0, .4, 1) infinite; }
