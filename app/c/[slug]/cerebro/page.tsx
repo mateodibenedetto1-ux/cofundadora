@@ -4,6 +4,7 @@ import { DEMO } from '@/lib/env';
 import { BrainEditor } from '@/components/BrainEditor';
 import { BriefUpload } from '@/components/BriefUpload';
 
+export const maxDuration = 120;
 export const metadata = { title: 'Segundo cerebro' };
 
 export default async function Cerebro({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ s?: string }> }) {
@@ -20,7 +21,7 @@ export default async function Cerebro({ params, searchParams }: { params: Promis
         <BriefUpload orgId={org.id} current={(data as Record<string, string>)._brief_name ?? null} />
       </div>
       <div style={{ marginTop: 18 }}>
-        <BrainEditor orgId={org.id} name={org.name} initial={data} demo={DEMO} roadmap={meta} initialSection={(await searchParams).s} roadmapHref={`/c/${org.slug}/roadmap`} />
+        <BrainEditor key={Object.keys(data).length} orgId={org.id} name={org.name} initial={data} demo={DEMO} roadmap={meta} initialSection={(await searchParams).s} roadmapHref={`/c/${org.slug}/roadmap`} />
       </div>
     </>
   );

@@ -6,6 +6,7 @@ import { DEMO } from '@/lib/env';
 import { BrainEditor } from '@/components/BrainEditor';
 import { BriefUpload } from '@/components/BriefUpload';
 
+export const maxDuration = 120;
 export default async function Page({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ s?: string; prueba?: string }> }) {
   const org = await getOrgBySlug((await params).slug);
   if (org.segment !== 'consulting') notFound();

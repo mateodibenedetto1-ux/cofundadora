@@ -748,8 +748,29 @@ export async function uploadBrandBrief(orgId: string, _prev: unknown, form: Form
   try {
     const text = (await extractText(await f.arrayBuffer(), f.name)).trim();
     if (text.length < 40) return { ok: false, msg: 'No pude leer texto en ese archivo. Si es un PDF escaneado, súbelo en Word.' };
-    await saveBrain(orgId, { _brief: text.slice(0, 60000), _brief_name: f.name, _brief_at: new Date().toISOString() });
-    return { ok: true, msg: `Listo: tu Cofundadora y Visionaria ya conocen tu Brand Brief (${f.name}).` };
+    const meta = { _brief: text.slice(0, 60000), _brief_name: f.name, _brief_at: new Date().toISOString() };
+    const { getOrgAiKey } = await import('./aikeys');
+    const key = await getOrgAiKey(orgId);
+    if (!key) {
+      await saveBrain(orgId, meta);
+      refresh();
+      return { ok: true, msg: `Listo: tu Cofundadora y Visionaria ya conocen tu Brand Brief (${f.name}). Para que también se complete solo el formulario, conecta tu API key en Cofundadora y vuelve a subirlo.` };
+    }
+    const sb = await supabaseServer();
+    const { data: cur } = await sb.from('client_brain').select('data').eq('org_id', orgId).maybeSingle();
+    let filled: Record<string, string> = {};
+    let note = '';
+    try {
+      const { fillFromBrief } = await import('./brief-fill');
+      filled = await fillFromBrief(key, text, (cur?.data as Record<string, string>) ?? {});
+    } catch (e) {
+      const m = e instanceof Error ? e.message : '';
+      note = /credit|billing|balance/i.test(m) ? ' No pude completar el formulario: tu cuenta de Anthropic no tiene saldo.' : ' No pude completar el formulario esta vez; vuelve a intentarlo.';
+    }
+    await saveBrain(orgId, { ...filled, ...meta });
+    refresh();
+    const n = Object.keys(filled).length;
+    return { ok: true, msg: n ? `Listo: completé ${n} respuestas de tu Segundo cerebro con tu Brand Brief (${f.name}). Revísalas y ajusta lo que quieras; lo que ya tenías escrito no lo toqué.` : `Listo: tu Cofundadora y Visionaria ya conocen tu Brand Brief (${f.name}).${note}` };
   } catch (e) {
     return { ok: false, msg: e instanceof Error ? e.message : 'No se pudo leer el archivo' };
   }
