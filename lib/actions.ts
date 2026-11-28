@@ -365,17 +365,12 @@ export async function inviteClientUser(form: FormData) {
   if (!email) return;
   if (!orgId) redirect('/panel/ajustes?error=' + encodeURIComponent('No se encontró la cuenta de Seres Magnéticos.'));
   const admin = supabaseAdmin();
-  let userId: string | undefined;
-  const { data: invited, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${APP_URL}/auth/callback?next=/set-password`,
-    data: { full_name: str(form, 'name') },
-  });
-  if (invited?.user) userId = invited.user.id;
-  if (error) {
-    // Ya existe: lo buscamos y solo sumamos el acceso
-    const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
-    userId = list.users.find((u) => u.email?.toLowerCase() === email)?.id;
-    if (!userId) redirect('/panel/ajustes?error=' + encodeURIComponent(error.message));
+  const { sendInvite } = await import('./provision');
+  let userId: string;
+  try {
+    userId = (await sendInvite(email, str(form, 'name'))).userId;
+  } catch (e) {
+    redirect('/panel/ajustes?error=' + encodeURIComponent(e instanceof Error ? e.message : 'No se pudo invitar'));
   }
   const { error: mErr } = await admin.from('memberships').upsert({ user_id: userId, org_id: orgId, role }, { onConflict: 'user_id,org_id' });
   if (mErr) redirect('/panel/ajustes?error=' + encodeURIComponent(mErr.message));

@@ -8,6 +8,33 @@ const slugify = (s: string) =>
 export interface NewFundadora { name: string; email: string; contact_name?: string | null; offer?: string | null; start_date?: string | null }
 export interface ProvisionResult { email: string; name: string; status: 'creada' | 'ya existía' | 'error'; slug?: string; invited?: boolean; error?: string }
 
+
+/**
+ * Manda la invitación por email. Si la persona ya estaba invitada pero nunca entró,
+ * borra esa invitación vieja y manda una nueva (conservando sus accesos).
+ * Si ya entró alguna vez, no manda nada: ya puede entrar con su contraseña.
+ */
+export async function sendInvite(email: string, fullName?: string | null): Promise<{ userId: string; sent: boolean; note?: string }> {
+  const admin = supabaseAdmin();
+  const opts = { redirectTo: `${APP_URL}/set-password`, data: { full_name: fullName ?? undefined } };
+  const first = await admin.auth.admin.inviteUserByEmail(email, opts);
+  if (first.data?.user && !first.error) return { userId: first.data.user.id, sent: true };
+
+  const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  const existing = list.users.find((u) => u.email?.toLowerCase() === email);
+  if (!existing) throw new Error(first.error?.message ?? 'No se pudo invitar');
+  if (existing.last_sign_in_at) return { userId: existing.id, sent: false, note: 'ya tenía cuenta: entra con su contraseña o con "Prefiero recibir un link por email"' };
+
+  const { data: keep } = await admin.from('memberships').select('org_id, role').eq('user_id', existing.id);
+  const del = await admin.auth.admin.deleteUser(existing.id);
+  if (del.error) throw new Error(`No pude reenviar: ${del.error.message}`);
+  const again = await admin.auth.admin.inviteUserByEmail(email, opts);
+  if (again.error || !again.data?.user) throw new Error(again.error?.message ?? 'No se pudo reenviar la invitación');
+  const userId = again.data.user.id;
+  if (keep?.length) await admin.from('memberships').upsert(keep.map((m) => ({ user_id: userId, org_id: m.org_id, role: m.role })), { onConflict: 'user_id,org_id' });
+  return { userId, sent: true };
+}
+
 /**
  * Crea el portal de una fundadora (si no existe uno con ese email), arma su Recorrido MAGNA
  * y, si se pide, le manda la invitación por email. Se usa en la carga en bloque y desde Kajabi.
@@ -39,18 +66,9 @@ export async function provisionFundadora(f: NewFundadora, opts: { invite: boolea
 
     let invited = false;
     if (opts.invite) {
-      let userId: string | undefined;
-      const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-        redirectTo: `${APP_URL}/auth/callback?next=/set-password`,
-        data: { full_name: f.contact_name ?? name },
-      });
-      if (data?.user) { userId = data.user.id; invited = true; }
-      if (error) {
-        const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
-        userId = list.users.find((u) => u.email?.toLowerCase() === email)?.id;
-        if (!userId) throw new Error(error.message);
-      }
-      await admin.from('memberships').upsert({ user_id: userId, org_id: org.id, role: 'client' }, { onConflict: 'user_id,org_id' });
+      const r = await sendInvite(email, f.contact_name ?? name);
+      invited = r.sent;
+      await admin.from('memberships').upsert({ user_id: r.userId, org_id: org.id, role: 'client' }, { onConflict: 'user_id,org_id' });
     }
     return { email, name, status: existed ? 'ya existía' : 'creada', slug: org.slug, invited };
   } catch (e) {
